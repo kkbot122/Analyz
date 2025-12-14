@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrgRole {
+  ORG_OWNER
+  PROJECT_OWNER
+  TEAM_MEMBER
+}
+
+enum ProjectRole {
+  OWNER
+  MEMBER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  password  String?
+  createdAt DateTime @default(now())
+
+  // relations
+  orgMemberships     Membership[]
+  projectMemberships ProjectMember[]
+  ownedOrganizations Organization[]  @relation("OrgOwner")
+  ownedProjects      Project[]       @relation("ProjectOwner")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation("OrgOwner", fields: [ownerId], references: [id])
+
+  members  Membership[]
+  projects Project[]
+  invites  Invite[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  role      OrgRole
+  createdAt DateTime @default(now())
+
+  userId         String
+  organizationId String
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  organizationId String
+  ownerId        String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  owner        User         @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  members ProjectMember[]
+  invites Invite[]
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  role      ProjectRole
+  createdAt DateTime    @default(now())
+
+  userId    String
+  projectId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  role      OrgRole
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  organizationId String
+  projectId      String?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  project      Project?     @relation(fields: [projectId], references: [id])
+
+  @@index([email])
+}
