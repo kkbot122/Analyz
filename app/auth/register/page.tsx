@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { signIn } from "next-auth/react"; // Import signIn
+import { FcGoogle } from "react-icons/fc"; // Import Google Icon
+import { FaGithub } from "react-icons/fa"; // Import GitHub Icon
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,6 +59,11 @@ export default function RegisterPage() {
     }
   }
 
+  // Handler for Social Sign Up
+  const handleSocialSignUp = (provider: "google" | "github") => {
+    signIn(provider, { callbackUrl: "/dashboard" });
+  };
+
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       
@@ -92,8 +100,29 @@ export default function RegisterPage() {
           <div className="mb-8">
             <h2 className="text-3xl font-medium tracking-tight mb-2">Create your account</h2>
             <p className="text-gray-500">
-              Join the party. Set up your account the old-fashioned way; email, password, done.
+              Join the party. Set up your account with social or email.
             </p>
+          </div>
+
+          {/* Social Buttons */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <button 
+              type="button" // Important: prevents form submission
+              onClick={() => handleSocialSignUp("google")}
+              className="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+            >
+              <FcGoogle size={20} />
+              Google
+            </button>
+            
+            <button 
+              type="button" // Important: prevents form submission
+              onClick={() => handleSocialSignUp("github")}
+              className="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+            >
+              <FaGithub size={20} />
+              GitHub
+            </button>
           </div>
 
           {/* Divider */}
@@ -102,7 +131,7 @@ export default function RegisterPage() {
               <span className="w-full border-t border-gray-200"></span>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Register with email</span>
+              <span className="bg-white px-2 text-gray-500">Or register with email</span>
             </div>
           </div>
 

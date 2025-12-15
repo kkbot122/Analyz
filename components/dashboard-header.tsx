@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Plus, UserPlus } from "lucide-react";
-import Link from "next/link";
 import { InviteModal } from "./invite-modal";
+import { NewProjectModal } from "./new-project-modal";
 
 export function DashboardHeader({ 
   orgName, 
@@ -17,6 +17,23 @@ export function DashboardHeader({
   canInvite: boolean 
 }) {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+
+  // Helper to format the role for display
+  const getReadableRole = (role: string) => {
+    switch (role) {
+      case "ORG_OWNER":
+        return "Organization Owner";
+      case "PROJECT_OWNER":
+        return "Project Owner";
+      case "TEAM_MEMBER":
+        return "Member";
+      default:
+        return role; // Return as-is if it doesn't match known types
+    }
+  };
+
+  const displayRole = getReadableRole(userRole);
 
   return (
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -25,7 +42,7 @@ export function DashboardHeader({
           {orgName}
         </h1>
         <p className="text-gray-500 mt-2 text-lg">
-           Viewing as <span className="font-medium text-black">{userRole}</span>
+           Viewing as <span className="font-medium text-black">{displayRole}</span>
         </p>
       </div>
 
@@ -43,17 +60,18 @@ export function DashboardHeader({
 
         {/* New Project Button */}
         {canCreateProject && (
-          <Link
-            href="/projects/new"
+          <button
+            onClick={() => setIsProjectModalOpen(true)}
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-black text-white font-medium hover:bg-gray-800 transition-colors shadow-sm gap-2"
           >
             <Plus className="w-4 h-4" />
             New Project
-          </Link>
+          </button> 
         )}
       </div>
 
       <InviteModal isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} />
+      <NewProjectModal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} />
     </div>
   );
 }

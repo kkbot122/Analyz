@@ -2,10 +2,11 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, BarChart3 } from "lucide-react";
+import { ArrowLeft, BarChart3, Users } from "lucide-react";
 import Link from "next/link";
 import { ProjectHeader } from "@/components/project-header";
-import { canInviteToProject } from "@/lib/permissions";
+import { Sidebar } from "@/components/sidebar"; // Import Sidebar
+import { canInviteToProject, canManageOrganization } from "@/lib/permissions";
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
@@ -23,7 +24,7 @@ export default async function ProjectPage({ params }: PageProps) {
     include: {
       organization: true,
       members: {
-        where: { userId: session.user.id }, // Check if user is explicitly in project
+        where: { userId: session.user.id },
       },
     },
   });
@@ -31,7 +32,6 @@ export default async function ProjectPage({ params }: PageProps) {
   if (!project) return notFound();
 
   // 2. Fetch User's Organization Role
-  // (We need this because Org Owners/Managers might not be in the project members list but still have access)
   const orgMembership = await prisma.membership.findUnique({
     where: {
       userId_organizationId: {
@@ -42,74 +42,108 @@ export default async function ProjectPage({ params }: PageProps) {
   });
 
   if (!orgMembership) {
-    // User is not even in the organization -> Block access
     return notFound();
   }
 
   // 3. DETERMINE EFFECTIVE ROLE
-  const explicitProjectRole = project.members[0]?.role; // 'OWNER' | 'MEMBER' | undefined
-  const orgRole = orgMembership.role; // 'ORG_OWNER' | 'PROJECT_OWNER' | 'TEAM_MEMBER'
+  const explicitProjectRole = project.members[0]?.role;
+  const orgRole = orgMembership.role;
 
-  // LOGIC: Access is granted if:
-  // A. You are explicitly in the project (MEMBER or OWNER)
-  // B. You are the ORG_OWNER (Super Admin)
-  // C. You are a PROJECT_OWNER (Org level manager) -> Usually implies access to all projects
   const hasAccess = 
     explicitProjectRole || 
     orgRole === "ORG_OWNER" || 
-    orgRole === "PROJECT_OWNER";
+    orgRole === "PROJECT_OWNER"; // Adjusted to match your schema roles typically
 
   if (!hasAccess) {
-    return notFound(); // Or redirect to a "Request Access" page
+    return notFound();
   }
 
   // 4. Calculate Permissions for UI
-  // If they don't have an explicit project role, inherit from Org role for display
   const displayRole = explicitProjectRole || orgRole; 
   const showInvite = canInviteToProject(orgRole, explicitProjectRole);
+  
+  // Logic to determine if "Settings" should show in sidebar (based on Org role usually)
+  const showOrgSettings = canManageOrganization(orgRole);
+
+  // Styling constant
+  const cardBaseClass = "bg-white rounded-[30px] p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-50/50";
 
   return (
-    <div className="min-h-screen bg-white text-black selection:bg-orange-200">
-      <nav className="border-b border-gray-100 bg-white sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-           <div className="flex items-center h-16 gap-4">
-              <Link href="/dashboard" className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
-              </Link>
-              <div className="h-6 w-px bg-gray-200"></div>
-              
-              <div className="flex-1">
-                <ProjectHeader 
-                  projectName={project.name}
-                  projectId={project.id}
-                  userRole={displayRole}
-                  canInvite={showInvite}
-                />
-              </div>
-           </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[#f4f5f7] text-black flex font-sans">
+      
+      {/* 1. SIDEBAR (Persistent) */}
+      <Sidebar currentOrgId={project.organizationId} showSettings={showOrgSettings} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid gap-6 md:grid-cols-3">
-             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm col-span-2">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                        <BarChart3 className="w-5 h-5" />
+      {/* 2. MAIN CONTENT AREA */}
+      <main className="flex-1 px-6 lg:px-12 py-10 overflow-y-auto">
+        
+        {/* Back Button (Breadcrumb style) */}
+        <div className="mb-6 flex items-center gap-2">
+            <Link href="/dashboard" className="p-2 -ml-2 hover:bg-gray-200 rounded-full transition-colors inline-flex">
+                <ArrowLeft className="w-5 h-5 text-gray-500" />
+            </Link>
+            <span className="text-gray-400 font-medium">/</span>
+            <span className="text-gray-500 font-medium hover:text-black transition-colors cursor-pointer">Projects</span>
+        </div>
+
+        {/* Project Header */}
+        <div className="mb-10">
+            <ProjectHeader 
+                projectName={project.name}
+                projectId={project.id}
+                userRole={displayRole} // You might want to format this like the dashboard
+                canInvite={showInvite}
+            />
+        </div>
+
+        {/* Project Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Main Analytics Card */}
+            <div className={`lg:col-span-2 ${cardBaseClass}`}>
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <BarChart3 className="w-6 h-6" />
                     </div>
-                    <h3 className="font-semibold text-lg">Analytics</h3>
+                    <div>
+                        <h3 className="text-2xl font-bold tracking-tight">Project Analytics</h3>
+                        <p className="text-gray-500 text-sm">Real-time data for {project.name}</p>
+                    </div>
                 </div>
-                <div className="h-64 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center text-gray-400">
-                    Chart Data Placeholder
+                
+                <div className="h-96 bg-gradient-to-b from-gray-50 to-white rounded-[20px] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-400 gap-3">
+                    <BarChart3 className="w-12 h-12 opacity-20" />
+                    <span className="font-medium">Analytics visualization coming soon</span>
                 </div>
             </div>
             
-            {/* Debug Info (Remove later) */}
-            <div className="bg-gray-50 p-4 rounded-xl text-xs font-mono text-gray-500">
-                <p>Org Role: {orgRole}</p>
-                <p>Project Role: {explicitProjectRole || 'None (inherited)'}</p>
+            {/* Side Info / Debug Card */}
+            <div className="flex flex-col gap-8">
+                 <div className={cardBaseClass}>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-gray-100 text-gray-600 rounded-xl">
+                            <Users className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-bold text-lg">Team Access</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                             <p className="text-xs text-gray-400 uppercase font-bold mb-1">Your Context</p>
+                             <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-600">Org Role</span>
+                                <span className="font-bold">{orgRole}</span>
+                             </div>
+                             <div className="flex justify-between items-center text-sm mt-2">
+                                <span className="text-gray-600">Project Role</span>
+                                <span className="font-bold">{explicitProjectRole || 'Inherited'}</span>
+                             </div>
+                        </div>
+                    </div>
+                 </div>
             </div>
         </div>
+
       </main>
     </div>
   );
