@@ -11,10 +11,17 @@ export default function CreateOrgPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const { update } = useSession();
+  // 1. Get 'status' to check if session is ready
+  const { update, status } = useSession();
 
   async function createOrg() {
     if (!name.trim()) return;
+
+    // 2. SAFETY CHECK: Block request if session isn't ready
+    if (status !== "authenticated") {
+      alert("Session is initializing. Please wait a moment and try again.");
+      return;
+    }
     
     setLoading(true);
     
@@ -27,22 +34,26 @@ export default function CreateOrgPage() {
         body: JSON.stringify({ name: name.trim() }),
       });
 
+      // 3. Handle 401 specifically (Race condition fallback)
+      if (res.status === 401) {
+         window.location.reload(); // Force session refresh
+         return;
+      }
+
       if (res.ok) {
         await update();
         
-        // OPTION 2: Wait a moment for session to sync
+        // Wait a moment for session to sync
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Navigate to dashboard
+        router.refresh(); // Refresh server components
         router.push("/dashboard");
-        router.refresh();
       } else {
-        const text = await res.text(); // 1. Read raw text first
+        const text = await res.text();
         try {
-          const data = JSON.parse(text); // 2. Try to parse JSON
+          const data = JSON.parse(text);
           alert(data.error || "Failed to create organization");
         } catch {
-          // 3. If parsing fails, it's likely a server crash (HTML)
           console.error("Server Error Response:", text);
           alert("Server error occurred. Check browser console for details.");
         }
@@ -54,6 +65,9 @@ export default function CreateOrgPage() {
       setLoading(false);
     }
   }
+
+  // Optional: Show a loading state if session is still figuring itself out
+  const isSessionLoading = status === "loading";
 
   return (
     <div className="min-h-screen bg-white text-black selection:bg-orange-200">
@@ -100,7 +114,7 @@ export default function CreateOrgPage() {
                 onChange={e => setName(e.target.value)}
                 placeholder="Enter your organization name"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-colors text-lg placeholder-gray-400"
-                disabled={loading}
+                disabled={loading || isSessionLoading}
               />
               <p className="text-sm text-gray-500 mt-2">
                 This will be the name of your workspace
@@ -109,13 +123,14 @@ export default function CreateOrgPage() {
 
             <button
               onClick={createOrg}
-              disabled={!name.trim() || loading}
+              // 4. Disable button while session is loading
+              disabled={!name.trim() || loading || isSessionLoading}
               className="w-full bg-black text-white py-3.5 rounded-xl font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
-              {loading ? (
+              {loading || isSessionLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Creating...
+                  {isSessionLoading ? "Initializing..." : "Creating..."}
                 </>
               ) : (
                 "Create Organization"
