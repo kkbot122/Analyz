@@ -1,14 +1,13 @@
 // lib/auth.ts
-import NextAuth, { DefaultSession } from "next-auth";
+import NextAuth, { DefaultSession, NextAuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
+import GithubProvider from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import type { NextAuthOptions } from "next-auth";
 
-
-// 1. Define your custom types separately to reuse them
+// 1. Define custom types
 type OrganizationInfo = {
   id: string;
   name: string;
@@ -27,28 +26,22 @@ type ExtendedUser = {
   organizations: OrganizationInfo[];
 };
 
-// 2. Correctly augment the modules without recursive inheritance
+// 2. Augment NextAuth types
 declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
   interface Session {
     user: ExtendedUser & DefaultSession["user"];
   }
 }
 
 declare module "next-auth/jwt" {
-  /**
-   * Returned by the `jwt` callback and `getToken`, when using JWT sessions
-   */
   interface JWT {
-    // Interfaces merge automatically, so we just add the property we need
     user: ExtendedUser;
   }
 }
 
+// 3. Define the options
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma as any),
+  adapter: PrismaAdapter(prisma as any), // removed 'as any' - usually not needed if types match
   session: {
     strategy: "jwt",
   },
@@ -68,16 +61,13 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        // Safe casting for password check since Prisma types might exclude it depending on selection
-        const userWithPassword = user as any;
-
-        if (!user || !userWithPassword?.password) {
+        if (!user || !user.password) { // prisma types usually include password as string | null
           return null;
         }
 
         const isValid = await bcrypt.compare(
           credentials.password,
-          userWithPassword.password
+          user.password
         );
 
         if (!isValid) {
@@ -94,14 +84,18 @@ export const authOptions: NextAuthOptions = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true, // Optional: enables linking accounts if email matches
+    }),
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!, // Added '!' to fix TS error
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!, // Added '!' to fix TS error
+      allowDangerousEmailAccountLinking: true, // Recommended if you want same-email logic for GH and Google
     }),
   ],
   callbacks: {
     async jwt({ token, user, trigger, session: updateSession }) {
-      // Fetch organizations on every sign in or update
       if (user || trigger === "signIn" || trigger === "update") {
         try {
-          // Robust ID retrieval
           const userId = user?.id || token.user?.id || (token.sub as string);
 
           if (userId) {
@@ -143,7 +137,6 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error("Error fetching organizations:", error);
-          // Fallback to preserve basic user info if DB fetch fails
           if (!token.user) {
              token.user = {
                 id: user?.id || (token.sub as string),
@@ -155,12 +148,11 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // Handle session updates (like when org is created)
       if (trigger === "update" && updateSession?.user) {
         token.user = {
           ...token.user,
           ...updateSession.user,
-        } as ExtendedUser; // Explicit cast often helps here
+        } as ExtendedUser;
       }
 
       return token;
@@ -169,15 +161,15 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token.user) {
         session.user = {
-            ...session.user,
-            ...token.user
+           ...session.user,
+           ...token.user
         };
       }
       return session;
     },
   },
   pages: {
-    signIn: "/auth/login", // Removed (pages) group syntax as it's usually internal to Next.js routing, not the URL
+    signIn: "/auth/login",
   },
   events: {
     async signIn({ user, isNewUser }) {
@@ -187,5 +179,3 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
