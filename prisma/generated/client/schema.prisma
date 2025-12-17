@@ -73,6 +73,25 @@ model Project {
 
   members ProjectMember[]
   invites Invite[]
+  events  Event[]
+}
+
+model Event {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  eventName String
+  userId    String?
+  sessionId String?
+
+  properties Json?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([eventName])
 }
 
 model ProjectMember {

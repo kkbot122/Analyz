@@ -152,6 +152,17 @@ exports.Prisma.ProjectScalarFieldEnum = {
   ownerId: 'ownerId'
 };
 
+exports.Prisma.EventScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  eventName: 'eventName',
+  userId: 'userId',
+  sessionId: 'sessionId',
+  properties: 'properties',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ProjectMemberScalarFieldEnum = {
   id: 'id',
   role: 'role',
@@ -176,6 +187,11 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -184,6 +200,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 exports.OrgRole = exports.$Enums.OrgRole = {
   ORG_OWNER: 'ORG_OWNER',
@@ -201,6 +223,7 @@ exports.Prisma.ModelName = {
   Organization: 'Organization',
   Membership: 'Membership',
   Project: 'Project',
+  Event: 'Event',
   ProjectMember: 'ProjectMember',
   Invite: 'Invite'
 };
