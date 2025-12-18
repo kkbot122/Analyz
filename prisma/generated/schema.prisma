@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrgRole {
+  ORG_OWNER
+  PROJECT_OWNER
+  TEAM_MEMBER
+}
+
+enum ProjectRole {
+  OWNER
+  MEMBER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // relations
+  orgMemberships     Membership[]
+  projectMemberships ProjectMember[]
+  ownedOrganizations Organization[]  @relation("OrgOwner")
+  ownedProjects      Project[]       @relation("ProjectOwner")
+  accounts           Account[]
+  sessions           Session[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation("OrgOwner", fields: [ownerId], references: [id])
+
+  members  Membership[]
+  projects Project[]
+  invites  Invite[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  role      OrgRole
+  createdAt DateTime @default(now())
+
+  userId         String
+  organizationId String
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  organizationId String
+  ownerId        String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  owner        User         @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  members ProjectMember[]
+  invites Invite[]
+  events  Event[]
+}
+
+model Event {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  eventName String
+  userId    String?
+  sessionId String?
+
+  properties Json?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([eventName])
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  role      ProjectRole
+  createdAt DateTime    @default(now())
+
+  userId    String
+  projectId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  role      OrgRole
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  organizationId String
+  projectId      String?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  project      Project?     @relation(fields: [projectId], references: [id])
+
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}

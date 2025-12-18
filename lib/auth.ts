@@ -1,6 +1,6 @@
 // lib/auth.ts
 import NextAuth, { DefaultSession, NextAuthOptions } from "next-auth";
-import Google from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true, // Optional: enables linking accounts if email matches
