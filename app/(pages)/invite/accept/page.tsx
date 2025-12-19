@@ -6,11 +6,11 @@ import Link from "next/link";
 import { CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 
 interface PageProps {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }
 
 export default async function AcceptInvitePage({ searchParams }: PageProps) {
-  const { token } = searchParams;
+  const { token } = await searchParams;
 
   if (!token) {
     redirect("/dashboard");

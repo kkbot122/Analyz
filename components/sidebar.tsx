@@ -86,7 +86,7 @@ export function Sidebar({
         </div>
 
         {/* Footer: User/Org Section */}
-        <div className="mt-auto pt-4 border-t border-gray-50 space-y-3">
+        <div className="mt-auto pt-4 border-gray-50 space-y-3">
           <div className="px-1">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
               Organization

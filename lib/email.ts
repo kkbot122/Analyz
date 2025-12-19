@@ -1,142 +1,203 @@
-import { Resend } from "resend"; // or your email service
+import Courier from '@trycourier/courier';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Courier client
+const courier = new Courier({
+  apiKey: process.env.COURIER_API_KEY!,
+});
 
-export async function sendInviteEmail({
-  to,
-  orgName,
-  role,
-  projectName,
-  token,
-  expiresAt,
-}: {
+// Types
+interface InviteEmailParams {
   to: string;
   orgName: string;
   role: string;
   projectName?: string;
   token: string;
   expiresAt: Date;
-}) {
-  try {
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/accept?token=${token}`;
-    const expiresInDays = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-
-    const subject = projectName 
-      ? `Join ${projectName} on ${orgName}`
-      : `Join ${orgName}`;
-
-    await resend.emails.send({
-      from: "Acme <invites@acme.com>",
-      to,
-      subject,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .button { 
-              display: inline-block; 
-              background-color: #000; 
-              color: white; 
-              padding: 12px 24px; 
-              text-decoration: none; 
-              border-radius: 8px; 
-              font-weight: bold;
-              margin: 20px 0;
-            }
-            .footer { margin-top: 30px; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>You're Invited!</h2>
-            <p>You've been invited to join <strong>${orgName}</strong> as a <strong>${role.toLowerCase().replace('_', ' ')}</strong>.</p>
-            
-            ${projectName ? `<p>Specifically, you're invited to the project: <strong>${projectName}</strong></p>` : ''}
-            
-            <p>Click the button below to accept your invitation:</p>
-            
-            <a href="${inviteUrl}" class="button">Accept Invitation</a>
-            
-            <p>Or copy and paste this link in your browser:<br>
-            <small>${inviteUrl}</small></p>
-            
-            <p><strong>This invite expires in ${expiresInDays} days.</strong></p>
-            
-            <div class="footer">
-              <p>If you didn't request this invitation, you can safely ignore this email.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-    });
-  } catch (error) {
-    console.error("Failed to send invite email:", error);
-    throw error;
-  }
 }
 
-export async function sendWelcomeEmail({
-  to,
-  userName,
-  orgName,
-  role,
-  projectName,
-}: {
+interface WelcomeEmailParams {
   to: string;
   userName: string;
   orgName: string;
   role: string;
   projectName?: string;
-}) {
-  try {
-    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
+}
 
-    await resend.emails.send({
-      from: "Acme <welcome@acme.com>",
-      to,
-      subject: `Welcome to ${orgName}!`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .button { 
-              display: inline-block; 
-              background-color: #000; 
-              color: white; 
-              padding: 12px 24px; 
-              text-decoration: none; 
-              border-radius: 8px; 
-              font-weight: bold;
-              margin: 20px 0;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>Welcome to ${orgName}, ${userName}!</h2>
-            <p>You've been added to <strong>${orgName}</strong> as a <strong>${role.toLowerCase().replace('_', ' ')}</strong>.</p>
-            
-            ${projectName ? `<p>You also have access to the project: <strong>${projectName}</strong></p>` : ''}
-            
-            <p>You can now access your dashboard:</p>
-            
-            <a href="${dashboardUrl}" class="button">Go to Dashboard</a>
-            
-            <p>If you have any questions, please contact your organization admin.</p>
-          </div>
-        </body>
-        </html>
-      `,
+/**
+ * Send invite email to new users
+ */
+export async function sendInviteEmail(params: InviteEmailParams) {
+  try {
+    console.log("🔧 Sending invite email via Courier...");
+    console.log("🔧 Environment check:", {
+      hasApiKey: !!process.env.COURIER_API_KEY,
+      hasInviteTemplate: !!process.env.COURIER_TEMPLATE_INVITE,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL,
     });
-  } catch (error) {
-    console.error("Failed to send welcome email:", error);
-    throw error;
+    
+    const inviteUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/invite/accept?token=${params.token}`;
+    const expiresAtFormatted = params.expiresAt.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    console.log("📧 Courier request payload:", {
+      to: params.to,
+      template: process.env.COURIER_TEMPLATE_INVITE,
+      data: {
+        orgName: params.orgName,
+        role: params.role,
+        projectName: params.projectName || '',
+        inviteUrl,
+      }
+    });
+
+    const response = await courier.send.message({
+      message: {
+        to: { 
+          user_id: params.to, // Use user_id or email based on Courier's preference
+          email: params.to 
+        },
+        template: process.env.COURIER_TEMPLATE_INVITE!,
+        data: {
+          orgName: params.orgName,
+          role: params.role,
+          projectName: params.projectName || '',
+          inviteUrl,
+          expiresAt: expiresAtFormatted,
+          year: new Date().getFullYear(),
+        },
+      },
+    });
+
+    console.log('✅ Courier: Invite email sent successfully:', response.requestId);
+    return { success: true, requestId: response.requestId };
+  } catch (error: any) {
+    console.error('❌ Courier invite error:', error.message);
+    console.error('Full error:', error);
+    
+    // Fallback for development
+    console.log('📧 [DEV FALLBACK] Invite email details:', {
+      to: params.to,
+      orgName: params.orgName,
+      role: params.role,
+      projectName: params.projectName,
+      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/invite/accept?token=${params.token}`,
+    });
+    
+    // In development, don't fail - just log
+    if (process.env.NODE_ENV === 'development') {
+      return { 
+        success: true, 
+        devMode: true, 
+        message: 'Email would be sent in production',
+        details: {
+          to: params.to,
+          inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/invite/accept?token=${params.token}`,
+        }
+      };
+    }
+    
+    throw new Error(`Failed to send invite email: ${error.message}`);
+  }
+}
+
+/**
+ * Send welcome email to existing users
+ */
+export async function sendWelcomeEmail(params: WelcomeEmailParams) {
+  try {
+    console.log("🔧 Sending welcome email via Courier...");
+    
+    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard`;
+
+    const response = await courier.send.message({
+      message: {
+        to: { 
+          user_id: params.to,
+          email: params.to 
+        },
+        template: process.env.COURIER_TEMPLATE_WELCOME!,
+        data: {
+          userName: params.userName,
+          orgName: params.orgName,
+          role: params.role,
+          projectName: params.projectName || '',
+          dashboardUrl,
+          year: new Date().getFullYear(),
+        },
+      },
+    });
+
+    console.log('✅ Courier: Welcome email sent successfully:', response.requestId);
+    return { success: true, requestId: response.requestId };
+  } catch (error: any) {
+    console.error('❌ Courier welcome error:', error.message);
+    
+    // Fallback for development
+    console.log('📧 [DEV FALLBACK] Welcome email details:', {
+      to: params.to,
+      userName: params.userName,
+      orgName: params.orgName,
+      role: params.role,
+      projectName: params.projectName,
+    });
+    
+    // In development, don't fail
+    if (process.env.NODE_ENV === 'development') {
+      return { 
+        success: true, 
+        devMode: true, 
+        message: 'Email would be sent in production' 
+      };
+    }
+    
+    throw new Error(`Failed to send welcome email: ${error.message}`);
+  }
+}
+
+/**
+ * Test Courier configuration
+ */
+export async function testCourierConfig() {
+  try {
+    console.log("🧪 Testing Courier configuration...");
+    
+    // Test by sending a test notification
+    const testEmail = 'test@example.com';
+    
+    const result = await sendInviteEmail({
+      to: testEmail,
+      orgName: 'Test Organization',
+      role: 'TEAM_MEMBER',
+      token: 'test-token-123',
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    
+    return { 
+      success: true, 
+      message: 'Courier test email sent (check Courier dashboard)',
+      result,
+      env: {
+        hasApiKey: !!process.env.COURIER_API_KEY,
+        hasInviteTemplate: !!process.env.COURIER_TEMPLATE_INVITE,
+        hasWelcomeTemplate: !!process.env.COURIER_TEMPLATE_WELCOME,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL,
+      },
+    };
+  } catch (error: any) {
+    console.error("🧪 Courier test failed:", error);
+    return { 
+      success: false, 
+      error: error.message,
+      env: {
+        hasApiKey: !!process.env.COURIER_API_KEY,
+        hasInviteTemplate: !!process.env.COURIER_TEMPLATE_INVITE,
+        hasWelcomeTemplate: !!process.env.COURIER_TEMPLATE_WELCOME,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL,
+      }
+    };
   }
 }
