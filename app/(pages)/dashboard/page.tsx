@@ -5,21 +5,13 @@ import { OrgSwitcher } from "@/components/OrgSwitcher";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { Sidebar } from "@/components/sidebar";
 import { CreateProjectButton } from "@/components/create-project-button";
-import {
-  canCreateProject,
-  canManageOrganization,
-  canInviteMembers,
-} from "@/lib/permissions";
+import { canCreateProject, canManageOrganization } from "@/lib/permissions";
 import {
   BarChart3,
-  Settings,
-  Users,
-  ShieldAlert,
   ArrowUpRight,
   Plus,
-  ArrowRight,
+  MoreHorizontal,
 } from "lucide-react";
-
 
 export default async function Dashboard() {
   const org = await getActiveOrg();
@@ -27,172 +19,223 @@ export default async function Dashboard() {
 
   const showNewProjectBtn = canCreateProject(org.role);
   const showOrgSettings = canManageOrganization(org.role);
-  const cardBaseClass =
-    "bg-white rounded-[30px] p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-50/50";
+
+  // The specific "soft card" style from the image
+  const cardClass =
+    "bg-white rounded-[24px] p-6 shadow-sm border border-gray-100/50 hover:shadow-md transition-shadow duration-300";
 
   // Limit projects for dashboard view
-  const visibleProjects = org.projects.slice(0, 3);
-  const hasMoreProjects = org.projects.length > 3;
+  const visibleProjects = org.projects.slice(0, 4);
+  const hasMoreProjects = org.projects.length > 4;
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] text-black flex font-sans">
+    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans selection:bg-black selection:text-white">
+      {/* Sidebar is fixed height, handles its own sticky state */}
       <Sidebar currentOrgId={org.id} showSettings={showOrgSettings} />
 
-      <main className="flex-1 px-6 lg:px-12 py-10 overflow-y-auto">
-        <div className="lg:hidden flex justify-between items-center mb-8">
+      <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
+        {/* Mobile Header */}
+        <div className="lg:hidden flex justify-between items-center mb-6">
           <Link href="/dashboard" className="font-black text-xl">
             Analyz
           </Link>
           <OrgSwitcher currentOrgId={org.id} />
         </div>
 
-        <div className="mb-10">
-          <DashboardHeader
-            orgName={org.name}
-            userRole={org.role}
-            canCreateProject={showNewProjectBtn}
-            canInvite={canInviteMembers(org.role)}
-          />
-        </div>
+        <DashboardHeader
+          orgName={org.name}
+          userRole={org.role}
+          canCreateProject={showNewProjectBtn}
+          canInvite={canManageOrganization(org.role)} // Assuming similar perm
+        />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 flex flex-col gap-8">
-            {/* Active Projects Card */}
-            <div className={cardBaseClass}>
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-bold tracking-tight">
-                  Active Projects
-                </h3>
-                {showNewProjectBtn && (
-                  <CreateProjectButton className="flex items-center gap-2 text-sm font-bold bg-black text-white px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors">
-                    <Plus className="w-4 h-4" />
-                    Create
-                  </CreateProjectButton>
-                )}
-              </div>
+        {/* BENTO GRID LAYOUT */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* LEFT COLUMN (Main Content) - Spans 8 cols on large screens */}
+          <div className="xl:col-span-8 flex flex-col gap-6">
+            {/* Section Title */}
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-xl font-bold text-gray-900">
+                Projects Overview
+              </h2>
+              <button className="text-sm font-medium text-gray-500 hover:text-black transition-colors flex items-center gap-1">
+                All Departments <ArrowUpRight className="w-4 h-4" />
+              </button>
+            </div>
 
+            {/* Projects Grid (Styled like "Rounds") */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {org.projects && org.projects.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  <ul className="space-y-3">
-                    {visibleProjects.map((p: any) => (
-                      <li key={p.id}>
-                        <Link
-                          href={`/projects/${p.id}`}
-                          className="group flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                              <BarChart3 className="w-6 h-6" />
-                            </div>
-                            <div>
-                              <span className="block font-bold text-lg text-gray-900 group-hover:text-black">
-                                {p.name}
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                Updated recently
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs font-bold capitalize bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">
-                              {(p.role)}
-                            </span>
-                            <ArrowUpRight className="w-5 h-5 text-gray-300 group-hover:text-black" />
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                visibleProjects.map((p: any, i: number) => (
+                  <div
+                    key={p.id}
+                    className={`${cardClass} flex flex-col justify-between group h-[180px]`}
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                            {new Date().getFullYear()}
+                          </span>
+                          <span className="bg-green-50 text-green-600 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            Active
+                          </span>
+                        </div>
+                        <MoreHorizontal className="w-5 h-5 text-gray-300 cursor-pointer hover:text-black" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {p.name}
+                      </h3>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Analytics Dashboard
+                      </p>
+                    </div>
 
-                  {/* "View All" Link Logic */}
-                  {hasMoreProjects && (
-                    <Link
-                      href="/projects"
-                      className="mt-2 flex items-center justify-center gap-2 text-sm font-bold text-gray-500 hover:text-black py-3 rounded-xl hover:bg-gray-50 transition-colors"
-                    >
-                      View all {org.projects.length} projects
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  )}
-                </div>
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
+                      <div className="flex -space-x-2">
+                        {/* Dummy Avatars */}
+                        {[1, 2, 3].map((x) => (
+                          <div
+                            key={x}
+                            className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-[10px] text-gray-500 font-bold"
+                          >
+                            U{x}
+                          </div>
+                        ))}
+                        <div className="w-8 h-8 rounded-full border-2 border-white bg-black text-white flex items-center justify-center text-[10px] font-bold pl-0.5">
+                          +5
+                        </div>
+                      </div>
+                      <Link
+                        href={`/projects/${p.id}`}
+                        className="px-4 py-2 bg-black text-white text-xs font-bold rounded-full opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"
+                      >
+                        View Project
+                      </Link>
+                    </div>
+                  </div>
+                ))
               ) : (
-                <div className="text-center py-12 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                  <p className="text-gray-500 font-medium mb-4">
-                    No active projects yet.
+                <div
+                  className={`${cardClass} col-span-2 border-dashed flex flex-col items-center justify-center py-12 text-center`}
+                >
+                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    <Plus className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-900 font-bold">No projects found</p>
+                  <p className="text-gray-500 text-sm mb-4">
+                    Create your first project to get started
                   </p>
                   {showNewProjectBtn && (
-                    <CreateProjectButton className="text-sm font-bold text-black hover:underline inline-flex items-center gap-1">
-                      Create first project <ArrowUpRight className="w-4 h-4" />
+                    <CreateProjectButton className="text-black underline text-sm font-bold">
+                      Create now
                     </CreateProjectButton>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Analytics Card */}
-            <div className={cardBaseClass}>
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-orange-100 text-[#ea582c] rounded-xl">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold tracking-tight">
-                      Overview stats
-                    </h3>
-                    <p className="text-gray-500 text-sm">All time analytics</p>
-                  </div>
+            {/* "Interview Overview" Area - Using for General Analytics Graph Placeholder */}
+            <div>
+              <div className="flex items-center justify-between px-2 mb-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Analytics Overview
+                </h2>
+                <div className="flex gap-2">
+                  <button className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-gray-400 hover:text-black hover:shadow-sm transition-all">
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-gray-400 hover:text-black hover:shadow-sm transition-all">
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
-              <div className="h-64 bg-gradient-to-b from-gray-50 to-white rounded-[20px] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-400 gap-3">
-                <BarChart3 className="w-10 h-10 opacity-30" />
-                <span className="font-medium">No data available yet</span>
+
+              <div className={`${cardClass} min-h-[300px]`}>
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">
+                      Total Views
+                    </p>
+                    <h3 className="text-2xl font-black">0</h3>
+                  </div>
+                </div>
+
+                {/* Graph Placeholder */}
+                <div className="w-full h-48 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center text-gray-400 gap-2">
+                  <BarChart3 className="w-5 h-5 opacity-50" />
+                  <span className="text-sm font-medium">
+                    Data visualization requires active projects
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="flex flex-col gap-8">
-            {showOrgSettings ? (
-              <div className={cardBaseClass}>
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 bg-gray-100 text-gray-700 rounded-xl inline-block">
-                    <Settings className="w-6 h-6" />
+          {/* RIGHT COLUMN (Widgets) - Spans 4 cols on large screens */}
+          <div className="xl:col-span-4 flex flex-col gap-6">
+            {/* Assigned Team Widget */}
+            <div className={`${cardClass} flex flex-col`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-gray-900">Team Members</h3>
+                <ArrowUpRight className="w-4 h-4 text-gray-400" />
+              </div>
+
+              <div className="flex items-center -space-x-3 mb-6">
+                {[1, 2, 3, 4].map((x) => (
+                  <div
+                    key={x}
+                    className="w-10 h-10 rounded-full border-[3px] border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 hover:-translate-y-1 transition-transform cursor-pointer shadow-sm"
+                  >
+                    U{x}
                   </div>
-                  <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
-                    Active
-                  </span>
+                ))}
+                <div className="w-10 h-10 rounded-full border-[3px] border-white bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold pl-0.5">
+                  +2
                 </div>
-                <h3 className="text-3xl font-black tracking-tight mb-2">
-                  Settings
-                </h3>
-                <p className="text-gray-500 font-medium mb-8">
-                  Manage organization, billing, and team members.
-                </p>
-                <button className="w-full text-center font-bold bg-black text-white px-6 py-3.5 rounded-full hover:bg-gray-800 transition-colors">
-                  Manage Organization
+              </div>
+
+              <div className="mt-auto pt-4 border-t border-gray-50">
+                <button className="w-full py-3 rounded-xl bg-gray-50 text-xs font-bold text-gray-600 hover:bg-[#d9623b] hover:text-white transition-colors">
+                  Manage Team
                 </button>
               </div>
-            ) : (
-              <div className={cardBaseClass}>
-                {/* Read Only Card Logic ... */}
-                <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 bg-red-50 text-red-500 rounded-xl inline-block">
-                    <ShieldAlert className="w-6 h-6" />
-                  </div>
-                  <span className="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">
-                    Limited
-                  </span>
-                </div>
-                <h3 className="text-2xl font-black tracking-tight mb-2 text-gray-800">
-                  Read Only
-                </h3>
-                <p className="text-gray-500 font-medium mb-6">
-                  Contact your Organization Owner if you need elevated
-                  permissions.
-                </p>
+            </div>
+
+            {/* Sections / Quick Actions */}
+            <div className={`${cardClass}`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-900">Quick Actions</h3>
+                <button className="text-xs font-bold bg-gray-100 px-3 py-1 rounded-lg hover:bg-gray-200 transition-colors">
+                  + Add
+                </button>
               </div>
-            )}
+
+              <div className="space-y-2">
+                {[
+                  "Check API Status",
+                  "Download Reports",
+                  "Billing Settings",
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 group cursor-pointer border border-transparent hover:border-gray-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-black"></div>
+                      <span className="text-xs font-bold text-gray-500 group-hover:text-black">
+                        {item}
+                      </span>
+                    </div>
+                    <MoreHorizontal className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-all" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </main>

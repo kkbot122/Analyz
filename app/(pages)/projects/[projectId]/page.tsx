@@ -2,7 +2,17 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Activity, Users, Globe, Shield, Key } from "lucide-react"; // Added Shield and Key icons
+import {
+  ArrowLeft,
+  Activity,
+  Users,
+  Globe,
+  Shield,
+  Key,
+  Copy,
+  ChevronRight,
+  Terminal,
+} from "lucide-react";
 import Link from "next/link";
 import { ProjectHeader } from "@/components/project-header";
 import { Sidebar } from "@/components/sidebar";
@@ -20,7 +30,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   const { projectId } = await params;
 
-  // 1. Fetch Project and ALL relevant context
+  // 1. Fetch Project
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     include: {
@@ -33,7 +43,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (!project) return notFound();
 
-  // 2. Fetch User's Organization Role
+  // 2. Fetch Role
   const orgMembership = await prisma.membership.findUnique({
     where: {
       userId_organizationId: {
@@ -45,7 +55,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (!orgMembership) return notFound();
 
-  // 3. DETERMINE EFFECTIVE ROLE
+  // 3. Determine Access
   const explicitProjectRole = project.members[0]?.role;
   const orgRole = orgMembership.role;
 
@@ -56,19 +66,16 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (!hasAccess) return notFound();
 
-  // 4. Calculate Permissions for UI
+  // 4. Permissions
   const displayRole = explicitProjectRole || orgRole;
   const showInvite = canInviteToProject(orgRole, explicitProjectRole);
   const showOrgSettings = canManageOrganization(orgRole);
 
-  // 5. FETCH ANALYTICS DATA (Real DB Queries)
-
-  // A. Total Events Count
+  // 5. Fetch Data
   const eventsCount = await prisma.event.count({
     where: { projectId: project.id },
   });
 
-  // B. Active Users (Last 24h)
   const activeUsersGroup = await prisma.event.groupBy({
     by: ["userId"],
     where: {
@@ -78,37 +85,87 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
   });
   const activeUsersCount = activeUsersGroup.length;
 
-  // Styling constant - The "Bento Tile" style
-  const cardBaseClass =
-    "bg-white rounded-[30px] p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col justify-center h-full";
-
   const resolvedParams = await searchParams;
+  const AccessContextWidget = (
+    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 mb-6 min-h-[250px]">
+      <div className="flex items-center gap-3 mb-6 border-b border-gray-50 pb-4">
+        <div className="p-2 bg-gray-100 rounded-lg">
+          <Shield className="w-5 h-5 text-gray-600" />
+        </div>
+        <h3 className="font-bold text-gray-900">Access Context</h3>
+      </div>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
+          <span className="text-sm text-gray-500 font-medium">
+            Organization
+          </span>
+          <span className="text-sm font-bold text-gray-900">
+            {project.organization.name}
+          </span>
+        </div>
+        <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
+          <span className="text-sm text-gray-500 font-medium">Your Role</span>
+          <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600 uppercase">
+            {displayRole?.replace("_", " ")}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ApiKeyWidget = (
+    <div className="bg-[#111] text-gray-300 rounded-[24px] p-6 shadow-xl shadow-gray-200/50 mb-6">
+      <div className="flex items-center gap-3 mb-4">
+        <Terminal className="w-5 h-5 text-orange-500" />
+        <h3 className="font-bold text-white text-sm">Project API Key</h3>
+      </div>
+      <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+        Keep this public. Used for SDK init.
+      </p>
+      <div className="group relative">
+        <div className="bg-[#222] border border-[#333] rounded-xl p-4 font-mono text-xs break-all text-gray-300 select-all">
+          {project.id}
+        </div>
+        <button className="absolute top-2 right-2 p-2 bg-[#333] rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#444]">
+          <Copy className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  );
+
+  // Styling
+  const cardBase =
+    "bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300";
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] text-black flex font-sans">
+    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans">
       {/* 1. SIDEBAR */}
       <Sidebar
         currentOrgId={project.organizationId}
         showSettings={showOrgSettings}
       />
 
-      {/* 2. MAIN CONTENT AREA */}
+      {/* 2. MAIN CONTENT */}
       <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto">
-        {/* Navigation & Header Block */}
-        <div className="mb-8">
-          <div className="mb-6 flex items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="p-2 -ml-2 hover:bg-gray-200 rounded-full transition-colors inline-flex"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-500" />
-            </Link>
-            <span className="text-gray-400 font-medium">/</span>
-            <span className="text-gray-500 font-medium hover:text-black transition-colors cursor-pointer">
-              Projects
-            </span>
-          </div>
+        {/* Navigation Breadcrumb */}
+        <div className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-500">
+          <Link
+            href="/dashboard"
+            className="hover:text-black transition-colors flex items-center gap-1"
+          >
+            Dashboard
+          </Link>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <Link href="/projects" className="hover:text-black transition-colors">
+            Projects
+          </Link>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="text-black font-bold bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100">
+            {project.name}
+          </span>
+        </div>
 
+        <div className="mb-8">
           <ProjectHeader
             projectName={project.name}
             projectId={project.id}
@@ -117,106 +174,17 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
           />
         </div>
 
-        {/* --- BENTO GRID LAYOUT --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
-          {/* Row 1: High Level Metrics (3 cards) */}
-          <div className="xl:col-span-4">
-            <div className={cardBaseClass}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-500 text-sm font-medium">
-                  Total Events
-                </p>
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                  <Activity className="w-5 h-5" />
-                </div>
-              </div>
-              <h4 className="text-3xl font-black">
-                {eventsCount.toLocaleString()}
-              </h4>
-            </div>
-          </div>
+        <ProjectAnalyticsView
+          projectId={project.id}
+          searchParams={resolvedParams}
+          sideWidgets={
+            <>
+              {AccessContextWidget}
+              {ApiKeyWidget}
+            </>
+          }
+        />
 
-          <div className="xl:col-span-4">
-            <div className={cardBaseClass}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-500 text-sm font-medium">
-                  Active Users (24h)
-                </p>
-                <div className="p-2 bg-green-50 text-green-600 rounded-xl">
-                  <Users className="w-5 h-5" />
-                </div>
-              </div>
-              <h4 className="text-3xl font-black">
-                {activeUsersCount.toLocaleString()}
-              </h4>
-            </div>
-          </div>
-
-          <div className="xl:col-span-4">
-            <div className={cardBaseClass}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-500 text-sm font-medium">API Status</p>
-                <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
-                  <Globe className="w-5 h-5" />
-                </div>
-              </div>
-              <h4 className="text-3xl font-semibold text-green-600">Online</h4>
-            </div>
-          </div>
-
-          {/* Row 2: Main Content Split */}
-
-          {/* LEFT: Project Analytics (Takes up 8 columns) */}
-          <div className="xl:col-span-8 flex flex-col gap-6">
-            <div className="bg-white rounded-[30px] p-8 shadow-sm border border-gray-100 min-h-[500px]">
-              <ProjectAnalyticsView
-                projectId={project.id}
-                searchParams={resolvedParams}
-              />
-            </div>
-          </div>
-
-          {/* RIGHT: Context & Info (Takes up 4 columns - Stacked Tiles) */}
-          <div className="xl:col-span-4 flex flex-col gap-6">
-            <div className="flex flex-col gap-8">
-              <div className={cardBaseClass}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gray-100 text-gray-600 rounded-xl">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-lg">Details</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <p className="text-xs text-gray-400 uppercase font-bold mb-1">
-                      Your Context
-                    </p>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Org Role</span>
-                      <span className="font-bold">{orgRole}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm mt-2">
-                      <span className="text-gray-600">Project Role</span>
-                      <span className="font-bold">
-                        {explicitProjectRole || "Inherited"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <p className="text-xs text-gray-400 uppercase font-bold mb-1">
-                      Project ID (API Key)
-                    </p>
-                    <code className="block bg-white p-2 rounded border border-gray-200 text-xs font-mono break-all mt-1 select-all">
-                      {project.id}
-                    </code>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );

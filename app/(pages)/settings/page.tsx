@@ -1,7 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { getActiveOrg } from "@/lib/active-org";
-import { prisma } from "@/lib/prisma"; // Import Prisma
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/sidebar";
@@ -11,27 +11,30 @@ import { DeleteItemButton, DeleteAccountButton } from "@/components/settings-but
 import { 
   User, 
   Mail, 
-  Shield, 
+  ShieldAlert, 
   Briefcase,
-  Users
+  Users,
+  Settings as SettingsIcon,
+  CreditCard,
+  BadgeCheck
 } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return redirect("/auth/login");
 
-  // 1. Get the Active Org ID from your helper
+  // 1. Get the Active Org
   const baseOrg = await getActiveOrg();
   if (!baseOrg) redirect("/dashboard");
 
-  // 2. FETCH FULL DATA: Re-fetch the org to include 'members' and 'user' details
+  // 2. FETCH FULL DATA
   const fullOrg = await prisma.organization.findUnique({
     where: { id: baseOrg.id },
     include: {
       projects: true,
       members: {
         include: {
-          user: true, // Needed to get member names/emails
+          user: true,
         },
       },
     },
@@ -39,20 +42,20 @@ export default async function SettingsPage() {
 
   if (!fullOrg) return redirect("/dashboard");
 
-  // 3. Permissions Check (Use the role from the helper which is context-aware)
+  // 3. Permissions Check
   const isOwner = canManageOrganization(baseOrg.role);
 
-  // Styling constant
-  const cardClass = "bg-white rounded-[24px] p-8 shadow-sm border border-gray-100";
-  const sectionTitle = "text-xl font-bold tracking-tight mb-4 flex items-center gap-2";
+  // Styling Constants
+  const cardBase = "bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden";
+  const headerClass = "px-6 py-5 border-b border-gray-50 flex items-center justify-between bg-white";
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] text-black flex font-sans">
+    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans">
       
       {/* Sidebar */}
       <Sidebar currentOrgId={fullOrg.id} showSettings={isOwner} />
 
-      <main className="flex-1 px-6 lg:px-12 py-10 overflow-y-auto">
+      <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto">
         
         {/* Mobile Nav */}
         <div className="lg:hidden flex justify-between items-center mb-8">
@@ -60,32 +63,52 @@ export default async function SettingsPage() {
              <OrgSwitcher currentOrgId={fullOrg.id} />
         </div>
 
-        <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-medium tracking-tight mb-2">Settings</h1>
-            <p className="text-gray-500 mb-10 text-lg">Manage your profile and organization preferences.</p>
+        {/* Page Header */}
+        <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-900 shadow-sm border border-gray-100">
+                <SettingsIcon className="w-6 h-6" />
+            </div>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Settings</h1>
+                <p className="text-gray-500 font-medium">
+                    Manage your profile and {fullOrg.name} preferences.
+                </p>
+            </div>
+        </div>
 
-            <div className="space-y-8">
+        {/* BENTO GRID LAYOUT */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-7xl">
 
-                {/* --- SECTION 1: MY PROFILE (Visible to Everyone) --- */}
-                <div className={cardClass}>
-                    <h2 className={sectionTitle}>
-                        <User className="w-5 h-5 text-gray-400" />
-                        My Profile
-                    </h2>
-                    <div className="flex items-start md:items-center gap-6 flex-col md:flex-row">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-2xl font-bold text-gray-400">
+            {/* --- LEFT COLUMN (2/3 width) --- */}
+            <div className="xl:col-span-2 space-y-6">
+                
+                {/* 1. PROFILE CARD */}
+                <div className={`${cardBase} p-8 relative overflow-hidden`}>
+                    {/* Decorative Background */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="w-24 h-24 bg-gray-900 rounded-[20px] flex items-center justify-center text-3xl font-bold text-white shadow-xl shadow-gray-200">
                             {session.user.name?.[0]?.toUpperCase() || "U"}
                         </div>
-                        <div className="flex-1 space-y-1">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="text-xs font-bold text-gray-400 uppercase">Full Name</label>
-                                    <div className="font-medium text-lg">{session.user.name}</div>
+                        
+                        <div className="flex-1 w-full">
+                            <div className="flex items-center justify-between mb-2">
+                                <h2 className="text-2xl font-bold text-gray-900">My Profile</h2>
+                                <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                    <BadgeCheck className="w-3 h-3" /> Verified
+                                </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Full Name</label>
+                                    <div className="font-bold text-gray-900">{session.user.name}</div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-bold text-gray-400 uppercase">Email Address</label>
-                                    <div className="font-medium text-lg flex items-center gap-2">
-                                        <Mail className="w-4 h-4 text-gray-400" />
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Email Address</label>
+                                    <div className="font-bold text-gray-900 flex items-center gap-2 truncate">
+                                        <Mail className="w-3 h-3 text-gray-400" />
                                         {session.user.email}
                                     </div>
                                 </div>
@@ -94,118 +117,142 @@ export default async function SettingsPage() {
                     </div>
                 </div>
 
-
-                {/* --- SECTION 2: ORGANIZATION MANAGEMENT (Owner Only) --- */}
+                {/* 2. TEAM MANAGEMENT (Owner Only) */}
                 {isOwner && (
-                    <>
-                        {/* Manage Members */}
-                        <div className={cardClass}>
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className={sectionTitle}>
-                                    <Users className="w-5 h-5 text-gray-400" />
-                                    Team Members
-                                </h2>
-                                <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-500">
-                                    {fullOrg.members.length} Members
-                                </span>
-                            </div>
-                            
-                            <div className="divide-y divide-gray-50">
-                                {fullOrg.members.map((member) => (
-                                    <div key={member.id} className="py-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
-                                                {member.user.name?.[0] || "?"}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-sm text-gray-900">{member.user.name}</p>
-                                                <p className="text-xs text-gray-500">{member.user.email}</p>
-                                            </div>
+                    <div className={cardBase}>
+                        <div className={headerClass}>
+                            <h3 className="font-bold text-lg flex items-center gap-2">
+                                <Users className="w-5 h-5 text-gray-400" />
+                                Team Members
+                            </h3>
+                            <button className="text-xs font-bold bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">
+                                + Invite
+                            </button>
+                        </div>
+                        
+                        <div className="p-2">
+                            {fullOrg.members.map((member) => (
+                                <div key={member.id} className="group flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-all duration-200">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 flex items-center justify-center font-bold shadow-sm">
+                                            {member.user.name?.[0] || "?"}
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-xs font-bold capitalize bg-gray-50 px-3 py-1 rounded-full text-gray-500">
-                                                {member.role.replace("org_", "")}
-                                            </span>
-                                            
-                                            {/* Delete Button: Can't delete yourself */}
-                                            {member.userId !== session.user.id && (
+                                        <div>
+                                            <p className="font-bold text-gray-900 text-sm">{member.user.name}</p>
+                                            <p className="text-xs text-gray-500 font-medium">{member.user.email}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4">
+                                        <span className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-full ${
+                                            member.role.includes('owner') 
+                                            ? 'bg-black text-white' 
+                                            : 'bg-gray-100 text-gray-500'
+                                        }`}>
+                                            {member.role.replace("org_", "")}
+                                        </span>
+                                        
+                                        {member.userId !== session.user.id && (
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <DeleteItemButton 
                                                     id={member.id} 
                                                     type="member" 
                                                     name={member.user.name || "Member"} 
                                                 />
-                                            )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
+                {/* 3. PROJECTS (Owner Only) */}
+                {isOwner && (
+                    <div className={cardBase}>
+                        <div className={headerClass}>
+                             <h3 className="font-bold text-lg flex items-center gap-2">
+                                <Briefcase className="w-5 h-5 text-gray-400" />
+                                Workspace Projects
+                            </h3>
+                            <span className="text-xs font-bold text-gray-400">
+                                {fullOrg.projects.length} Total
+                            </span>
+                        </div>
+                        <div className="p-2 grid gap-1">
+                             {fullOrg.projects.length > 0 ? (
+                                fullOrg.projects.map((proj) => (
+                                    <div key={proj.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-colors group">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                            <span className="font-bold text-gray-900 text-sm">{proj.name}</span>
+                                        </div>
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <DeleteItemButton 
+                                                id={proj.id} 
+                                                type="project" 
+                                                name={proj.name} 
+                                            />
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Manage Projects */}
-                        <div className={cardClass}>
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className={sectionTitle}>
-                                    <Briefcase className="w-5 h-5 text-gray-400" />
-                                    Projects Management
-                                </h2>
-                                <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-500">
-                                    {fullOrg.projects.length} Projects
-                                </span>
-                            </div>
-
-                            {fullOrg.projects.length > 0 ? (
-                                <div className="grid gap-3">
-                                    {fullOrg.projects.map((proj) => (
-                                        <div key={proj.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 transition-colors">
-                                            <div>
-                                                <h4 className="font-bold text-gray-900">{proj.name}</h4>
-                                                <p className="text-xs text-gray-500 font-mono">ID: {proj.id.slice(0, 8)}...</p>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                {/* Owner can delete ANY project */}
-                                                <DeleteItemButton 
-                                                    id={proj.id} 
-                                                    type="project" 
-                                                    name={proj.name} 
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
+                                ))
+                             ) : (
+                                <div className="text-center py-8 text-gray-400 text-sm font-medium">
+                                    No active projects found.
                                 </div>
-                            ) : (
-                                <div className="text-center py-8 text-gray-400 text-sm">
-                                    No projects created yet.
-                                </div>
-                            )}
+                             )}
                         </div>
-                    </>
+                    </div>
                 )}
 
+            </div>
 
-                {/* --- SECTION 3: DANGER ZONE (Visible to Everyone) --- */}
-                <div className="border border-red-100 bg-red-50/30 rounded-[24px] p-8">
-                    <h2 className="text-xl font-bold tracking-tight mb-2 text-red-900 flex items-center gap-2">
-                        <Shield className="w-5 h-5" />
-                        Danger Zone
-                    </h2>
-                    <p className="text-red-700/70 mb-6 text-sm">
-                        These actions are irreversible. Please be certain.
-                    </p>
-                    
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-red-100">
-                            <div>
-                                <h4 className="font-bold text-gray-900">Delete Personal Account</h4>
-                                <p className="text-xs text-gray-500">
-                                    Permanently remove your account and remove you from all organizations.
-                                </p>
-                            </div>
-                            <DeleteAccountButton />
+            {/* --- RIGHT COLUMN (1/3 width) --- */}
+            <div className="space-y-6">
+                
+                {/* Plan / Info Widget */}
+                <div className={`${cardBase} bg-black text-white p-6`}>
+                    <div className="flex items-start justify-between mb-6">
+                        <div className="p-3 bg-white/10 rounded-xl">
+                            <CreditCard className="w-6 h-6 text-white" />
                         </div>
+                        <span className="bg-white text-black text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                            Free Plan
+                        </span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Upgrade to Pro</h3>
+                    <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                        Unlock advanced team permissions, unlimited projects, and priority support.
+                    </p>
+                    <button className="w-full py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
+                        View Plans
+                    </button>
+                </div>
+
+                {/* DANGER ZONE */}
+                <div className={`${cardBase} border-red-100`}>
+                    <div className="p-6 border-b border-red-50 bg-red-50/30">
+                        <h3 className="text-red-900 font-bold flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5" />
+                            Danger Zone
+                        </h3>
+                    </div>
+                    <div className="p-6 space-y-6">
+                         <div>
+                            <h4 className="font-bold text-gray-900 text-sm mb-1">Delete Account</h4>
+                            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                                Permanently remove your account and all associated data. This action cannot be undone.
+                            </p>
+                            <div className="w-full">
+                                <DeleteAccountButton />
+                            </div>
+                         </div>
                     </div>
                 </div>
 
             </div>
+
         </div>
       </main>
     </div>

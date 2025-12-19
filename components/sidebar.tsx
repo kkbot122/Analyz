@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Folder, Settings, Sparkles } from "lucide-react";
+import { LayoutGrid, Folder, Settings, ChevronRight } from "lucide-react";
 import { OrgSwitcher } from "@/components/OrgSwitcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { GetStartedModal } from "@/components/get-started-modal";
@@ -24,16 +24,12 @@ export function Sidebar({
 
   const isActive = (path: string) => pathname === path;
 
-  // Custom colors (Orange Theme)
-  const activeBg = "bg-[#d9623b]";
-  const activeText = "text-white font-bold";
-  const inactiveText =
-    "text-gray-500 font-medium hover:text-white hover:bg-[#d9623b]";
-
   // UPDATED: Reduced px to 4 and py to 3 for a more compact look
   const linkClass = (path: string) =>
-    `flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${
-      isActive(path) ? `${activeBg} ${activeText}` : inactiveText
+    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+      isActive(path)
+        ? "text-black bg-gray-100"
+        : "text-gray-500 hover:text-black hover:bg-gray-50"
     }`;
 
   return (
@@ -69,20 +65,24 @@ export function Sidebar({
         </nav>
 
         {/* "First Steps" Promo Card Widget */}
-        <div className="mt-auto px-2 pb-6 flex flex-col items-center text-center">
-          <Sparkles className="w-6 h-6 text-[#d9623b] relative z-10 mb-2" />
+        <div className="relative overflow-hidden rounded-[24px] p-5 bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100">
+          {/* Decorative blurs */}
+          <div className="absolute top-0 right-0 w-16 h-16 bg-white opacity-40 blur-2xl rounded-full translate-x-4 -translate-y-4"></div>
 
-          <h3 className="text-gray-900 font-bold text-lg mb-1">First steps</h3>
-          <p className="text-gray-400 text-xs mb-4 max-w-[160px] leading-relaxed">
-            Customize your dashboard and learn about our features
-          </p>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-[#d9623b] font-bold text-sm hover:underline hover:text-[#b84a25] transition-colors"
-          >
-            Get Started
-          </button>
+          <div className="relative z-10">
+            <h3 className="text-gray-900 font-bold text-lg leading-tight mb-2">
+              First Steps
+            </h3>
+            <p className="text-gray-600 text-xs font-medium mb-4 leading-relaxed">
+              Customize your dashboard and set up your first tracker.
+            </p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="w-full bg-white text-black text-xs font-bold py-2.5 rounded-full shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1"
+            >
+              Get Started <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
         {/* Footer: User/Org Section */}
