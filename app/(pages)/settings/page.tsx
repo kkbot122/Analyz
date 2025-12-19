@@ -9,7 +9,6 @@ import { OrgSwitcher } from "@/components/OrgSwitcher";
 import { canManageOrganization } from "@/lib/permissions";
 import { DeleteItemButton, DeleteAccountButton } from "@/components/settings-button";
 import { 
-  User, 
   Mail, 
   ShieldAlert, 
   Briefcase,
@@ -18,31 +17,28 @@ import {
   CreditCard,
   BadgeCheck
 } from "lucide-react";
+// 1. Import the Avatar Component
+import { UserAvatar } from "@/components/user-avatar";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return redirect("/auth/login");
 
-  // 1. Get the Active Org
   const baseOrg = await getActiveOrg();
   if (!baseOrg) redirect("/dashboard");
 
-  // 2. FETCH FULL DATA
   const fullOrg = await prisma.organization.findUnique({
     where: { id: baseOrg.id },
     include: {
       projects: true,
       members: {
-        include: {
-          user: true,
-        },
+        include: { user: true },
       },
     },
   });
 
   if (!fullOrg) return redirect("/dashboard");
 
-  // 3. Permissions Check
   const isOwner = canManageOrganization(baseOrg.role);
 
   // Styling Constants
@@ -52,18 +48,15 @@ export default async function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans">
       
-      {/* Sidebar */}
       <Sidebar currentOrgId={fullOrg.id} showSettings={isOwner} />
 
       <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto">
         
-        {/* Mobile Nav */}
         <div className="lg:hidden flex justify-between items-center mb-8">
              <Link href="/dashboard" className="font-black text-xl">Analyz</Link>
              <OrgSwitcher currentOrgId={fullOrg.id} />
         </div>
 
-        {/* Page Header */}
         <div className="flex items-center gap-4 mb-8">
             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-900 shadow-sm border border-gray-100">
                 <SettingsIcon className="w-6 h-6" />
@@ -76,23 +69,31 @@ export default async function SettingsPage() {
             </div>
         </div>
 
-        {/* BENTO GRID LAYOUT */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-7xl">
 
-            {/* --- LEFT COLUMN (2/3 width) --- */}
+            {/* --- LEFT COLUMN --- */}
             <div className="xl:col-span-2 space-y-6">
                 
                 {/* 1. PROFILE CARD */}
                 <div className={`${cardBase} p-8 relative overflow-hidden`}>
-                    {/* Decorative Background */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
 
                     <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
-                        <div className="w-24 h-24 bg-gray-900 rounded-[20px] flex items-center justify-center text-3xl font-bold text-white shadow-xl shadow-gray-200">
-                            {session.user.name?.[0]?.toUpperCase() || "U"}
+                        
+                        {/* 2. Use UserAvatar (Scaled up for Profile Header) */}
+                        <div className="transform scale-[2.0] origin-top-left m-2">
+                             <UserAvatar 
+                                user={{
+                                    name: session.user.name,
+                                    email: session.user.email || "",
+                                    image: session.user.image
+                                }}
+                                size="lg"
+                                showTooltip={false}
+                             />
                         </div>
                         
-                        <div className="flex-1 w-full">
+                        <div className="flex-1 w-full pl-6">
                             <div className="flex items-center justify-between mb-2">
                                 <h2 className="text-2xl font-bold text-gray-900">My Profile</h2>
                                 <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
@@ -117,7 +118,7 @@ export default async function SettingsPage() {
                     </div>
                 </div>
 
-                {/* 2. TEAM MANAGEMENT (Owner Only) */}
+                {/* 2. TEAM MANAGEMENT */}  
                 {isOwner && (
                     <div className={cardBase}>
                         <div className={headerClass}>
@@ -134,9 +135,17 @@ export default async function SettingsPage() {
                             {fullOrg.members.map((member) => (
                                 <div key={member.id} className="group flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-all duration-200">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 flex items-center justify-center font-bold shadow-sm">
-                                            {member.user.name?.[0] || "?"}
-                                        </div>
+                                        
+                                        {/* 3. Use UserAvatar for Team List */}
+                                        <UserAvatar 
+                                            user={{
+                                                name: member.user.name,
+                                                email: member.user.email,
+                                                image: member.user.image
+                                            }}
+                                            size="md"
+                                        />
+
                                         <div>
                                             <p className="font-bold text-gray-900 text-sm">{member.user.name}</p>
                                             <p className="text-xs text-gray-500 font-medium">{member.user.email}</p>
@@ -168,7 +177,7 @@ export default async function SettingsPage() {
                     </div>
                 )}
                 
-                {/* 3. PROJECTS (Owner Only) */}
+                {/* 3. PROJECTS */}
                 {isOwner && (
                     <div className={cardBase}>
                         <div className={headerClass}>
@@ -205,13 +214,10 @@ export default async function SettingsPage() {
                         </div>
                     </div>
                 )}
-
             </div>
 
-            {/* --- RIGHT COLUMN (1/3 width) --- */}
+            {/* --- RIGHT COLUMN --- */}
             <div className="space-y-6">
-                
-                {/* Plan / Info Widget */}
                 <div className={`${cardBase} bg-black text-white p-6`}>
                     <div className="flex items-start justify-between mb-6">
                         <div className="p-3 bg-white/10 rounded-xl">
@@ -230,7 +236,6 @@ export default async function SettingsPage() {
                     </button>
                 </div>
 
-                {/* DANGER ZONE */}
                 <div className={`${cardBase} border-red-100`}>
                     <div className="p-6 border-b border-red-50 bg-red-50/30">
                         <h3 className="text-red-900 font-bold flex items-center gap-2">
@@ -250,7 +255,6 @@ export default async function SettingsPage() {
                          </div>
                     </div>
                 </div>
-
             </div>
 
         </div>
