@@ -35,12 +35,12 @@ export function Sidebar({
   return (
     <>
       {/* UPDATED: Width reduced to w-[250px] and padding to p-4 */}
-      <aside className="w-[250px] bg-white hidden lg:flex flex-col h-screen p-4 border-r border-gray-100 sticky top-0 font-sans">
+      <aside className="w-[250px] bg-[#f0eeef] hidden lg:flex flex-col h-screen p-4 sticky top-0 font-sans">
         {/* Top Section: Logo */}
         <div className="mb-10 px-2 flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="text-xl font-black tracking-tight text-gray-800"
+            className="text-xl font-black tracking-tight text-black"
           >
             Analyz
           </Link>

@@ -29,7 +29,7 @@ export default async function Dashboard() {
   const hasMoreProjects = org.projects.length > 4;
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans selection:bg-black selection:text-white">
+    <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans selection:bg-black selection:text-white">
       {/* Sidebar is fixed height, handles its own sticky state */}
       <Sidebar currentOrgId={org.id} showSettings={showOrgSettings} />
 

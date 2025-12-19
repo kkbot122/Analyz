@@ -48,7 +48,7 @@ export default async function ProjectsPage() {
   const showOrgSettings = canManageOrganization(org.role);
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans">
+    <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans">
       
       {/* 1. SIDEBAR */}
       <Sidebar currentOrgId={org.id} showSettings={showOrgSettings} />

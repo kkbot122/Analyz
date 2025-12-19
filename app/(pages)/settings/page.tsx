@@ -50,7 +50,7 @@ export default async function SettingsPage() {
   const headerClass = "px-6 py-5 border-b border-gray-50 flex items-center justify-between bg-white";
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans">
+    <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans">
       
       {/* Sidebar */}
       <Sidebar currentOrgId={fullOrg.id} showSettings={isOwner} />

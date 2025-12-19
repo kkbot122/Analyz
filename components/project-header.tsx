@@ -27,11 +27,11 @@ export function ProjectHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        {/* ✅ Invite Button */}
+
         {canInvite && (
           <button 
             onClick={() => setIsInviteOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-[#d9623b] hover:bg-[#ed6c42] rounded-lg transition-colors"
           >
             <UserPlus className="w-4 h-4" />
             Invite

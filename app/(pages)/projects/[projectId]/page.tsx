@@ -138,7 +138,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
     "bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300";
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-black flex font-sans">
+    <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans">
       {/* 1. SIDEBAR */}
       <Sidebar
         currentOrgId={project.organizationId}
