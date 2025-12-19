@@ -70,7 +70,7 @@ export function OrgSwitcher({ currentOrgId }: OrgSwitcherProps) {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute bottom-full left-0 mb-2 w-64 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
           <div className="p-1">
             <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
               Organizations
