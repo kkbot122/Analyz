@@ -267,6 +267,7 @@ export default async function Dashboard() {
 
         <DashboardHeader
           orgName={org.name}
+          orgId={org.id}
           userRole={org.role}
           canCreateProject={showNewProjectBtn}
           canInvite={canManageOrganization(org.role)}

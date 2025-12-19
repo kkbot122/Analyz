@@ -7,11 +7,13 @@ import { NewProjectModal } from "./new-project-modal";
 
 export function DashboardHeader({
   orgName,
+  orgId, // Add this prop
   userRole,
   canCreateProject,
   canInvite,
 }: {
   orgName: string;
+  orgId: string; // Add this prop
   userRole: string;
   canCreateProject: boolean;
   canInvite: boolean;
@@ -102,8 +104,16 @@ export function DashboardHeader({
         )}
       </div>
 
-      <InviteModal isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} />
-      <NewProjectModal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} />
+      {/* Pass orgId to the InviteModal */}
+      <InviteModal 
+        isOpen={isInviteOpen} 
+        onClose={() => setIsInviteOpen(false)} 
+        organizationId={orgId} // Use orgId here
+      />
+      <NewProjectModal 
+        isOpen={isProjectModalOpen} 
+        onClose={() => setIsProjectModalOpen(false)} 
+      />
     </div>
   );
 }

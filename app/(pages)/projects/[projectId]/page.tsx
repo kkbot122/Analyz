@@ -146,7 +146,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
       />
 
       {/* 2. MAIN CONTENT */}
-      <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto">
+      <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto" suppressHydrationWarning>
         {/* Navigation Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-500">
           <Link
@@ -171,6 +171,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
             projectId={project.id}
             userRole={displayRole}
             canInvite={showInvite}
+            orgId={project.organizationId}
           />
         </div>
 

@@ -8,12 +8,14 @@ export function ProjectHeader({
   projectName, 
   userRole, 
   projectId,
-  canInvite 
+  canInvite,
+  orgId 
 }: { 
   projectName: string; 
   userRole: string; 
   projectId: string;
   canInvite: boolean;
+  orgId: string;
 }) {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
 
@@ -47,6 +49,7 @@ export function ProjectHeader({
         isOpen={isInviteOpen} 
         onClose={() => setIsInviteOpen(false)} 
         projectId={projectId}
+        organizationId={orgId}
       />
     </div>
   );
