@@ -179,7 +179,7 @@ function ProjectCard({
                       image: member.image,
                     }}
                     size="sm"
-                    showTooltip={true}
+                    showTooltip={false}
                   />
                 </div>
               ))}

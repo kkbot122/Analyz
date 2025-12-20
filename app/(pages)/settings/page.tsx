@@ -144,6 +144,7 @@ export default async function SettingsPage() {
                                                 image: member.user.image
                                             }}
                                             size="md"
+                                            showTooltip={false}
                                         />
 
                                         <div>
