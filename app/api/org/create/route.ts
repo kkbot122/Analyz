@@ -1,9 +1,8 @@
 // app/api/org/create/route.ts
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json(); // Safe to parse here inside try/catch
+    const body = await req.json();
     const { name } = body;
 
     if (!name) {
@@ -23,19 +22,8 @@ export async function POST(req: Request) {
 
     const userId = session.user.id;
 
-    // Prevent accidental duplicates
-    const existing = await prisma.membership.findFirst({
-      where: { userId },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "User already belongs to an organization" },
-        { status: 400 }
-      );
-    }
-
     const org = await prisma.$transaction(async (tx) => {
+      // 1. Create the new Organization
       const organization = await tx.organization.create({
         data: {
           name,
@@ -43,6 +31,7 @@ export async function POST(req: Request) {
         },
       });
 
+      // 2. Add the creator as the OWNER
       await tx.membership.create({
         data: {
           userId,
@@ -57,7 +46,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ orgId: org.id });
 
   } catch (error) {
-    // Log the actual error to your terminal so you can debug the root cause
     console.error("[ORG_CREATE_ERROR]", error);
     
     return NextResponse.json(

@@ -7,7 +7,7 @@ import { Trash2, Loader2, UserX } from "lucide-react";
 // --- Generic Delete Button for Projects & Members ---
 interface DeleteItemProps {
   id: string;
-  type: "project" | "member";
+  type: "project" | "member" | "org";
   name: string;
 }
 
@@ -16,12 +16,24 @@ export function DeleteItemButton({ id, type, name }: DeleteItemProps) {
   const router = useRouter();
 
   async function handleDelete() {
-    if (!confirm(`Are you sure you want to delete ${type} "${name}"? This cannot be undone.`)) return;
+    if (
+      !confirm(
+        `Are you sure you want to delete ${type} "${name}"? This cannot be undone.`
+      )
+    )
+      return;
 
     setLoading(true);
     try {
       // API routes assumed: /api/projects/[id] or /api/members/[id]
-      const endpoint = type === "project" ? `/api/projects/${id}` : `/api/members/${id}`;
+      const endpoint =
+        type === "project"
+          ? `/api/projects/${id}`
+          : type === "member"
+          ? `/api/members/${id}`
+          : type === "org"
+          ? `/api/org/${id}`
+          : "";
       const res = await fetch(endpoint, { method: "DELETE" });
 
       if (res.ok) {
@@ -43,7 +55,11 @@ export function DeleteItemButton({ id, type, name }: DeleteItemProps) {
       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
       title={`Delete ${type}`}
     >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+      {loading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <Trash2 className="w-4 h-4" />
+      )}
     </button>
   );
 }
@@ -54,7 +70,9 @@ export function DeleteAccountButton() {
   const router = useRouter();
 
   async function handleDeleteAccount() {
-    const confirmation = prompt('Type "DELETE" to confirm you want to delete your account permanently.');
+    const confirmation = prompt(
+      'Type "DELETE" to confirm you want to delete your account permanently.'
+    );
     if (confirmation !== "DELETE") return;
 
     setLoading(true);
@@ -78,7 +96,11 @@ export function DeleteAccountButton() {
       disabled={loading}
       className="flex items-center gap-2 text-red-600 font-bold text-sm bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors border border-red-100"
     >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+      {loading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <UserX className="w-4 h-4" />
+      )}
       Delete My Account
     </button>
   );

@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger, session: updateSession }) {
       // Initial sign-in
-      if (user || trigger === "signIn") {
+      if (user || trigger === "signIn" || trigger === "update") {
         const userId = user?.id || token.sub as string;
         const userEmail = user?.email || token.email || "";
         
