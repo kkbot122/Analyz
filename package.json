@@ -22,6 +22,7 @@
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "email-octopus": "^1.1.2",
     "lucide-react": "^0.561.0",
     "motion": "^12.23.26",
