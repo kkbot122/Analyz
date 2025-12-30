@@ -7,6 +7,8 @@ import {
   Shield,
   Copy,
   Terminal,
+  Building2,
+  UserCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { ProjectHeader } from "@/components/project-header";
@@ -101,30 +103,6 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
     });
   }
 
-  // --- WIDGETS ---
-  const AccessContextWidget = (
-    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 mb-6">
-      <div className="flex items-center gap-3 mb-6 border-b border-gray-50 pb-4">
-        <div className="p-2 bg-gray-100 rounded-lg">
-          <Shield className="w-5 h-5 text-gray-600" />
-        </div>
-        <h3 className="font-bold text-gray-900">Access Context</h3>
-      </div>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
-          <span className="text-sm text-gray-500 font-medium">Organization</span>
-          <span className="text-sm font-bold text-gray-900">{project.organization.name}</span>
-        </div>
-        <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
-          <span className="text-sm text-gray-500 font-medium">Your Role</span>
-          <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600 uppercase">
-            {displayRole?.replace("_", " ")}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
   const ApiKeyWidget = (
     <div className="bg-[#111] text-gray-300 rounded-[24px] p-6 shadow-xl shadow-gray-200/50 mb-6">
       <div className="flex items-center gap-3 mb-4">
@@ -186,7 +164,6 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
             sideWidgets={
               <>
                 {SdkWidget}
-                {AccessContextWidget}
                 {ApiKeyWidget}
               </>
             }

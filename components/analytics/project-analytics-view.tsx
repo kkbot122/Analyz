@@ -64,12 +64,9 @@ export default async function ProjectAnalyticsView({
     });
 
   // ✅ 2. CONSTRUCT PRISMA FILTER
-  // This object will be spread (...) into every single prisma query
   const propertyFilters: any = {};
 
   if (filters.length > 0) {
-    // Prisma JSON filtering syntax
-    // AND: [ { properties: { path: ['key'], equals: 'value' } } ]
     propertyFilters.AND = filters.map((f) => ({
       properties: {
         path: [f.key],
@@ -104,9 +101,6 @@ export default async function ProjectAnalyticsView({
 
   if (searchParams.funnel) {
     FUNNEL_STEPS = searchParams.funnel.split(",");
-  } else if (primaryGoal) {
-    // If no custom funnel, but a goal is set, maybe default to [page_view -> goal]?
-    // For now, let's keep the URL override as the main way to change the table.
   }
 
   // 2. Fetch Events (Current Period)
@@ -214,7 +208,7 @@ export default async function ProjectAnalyticsView({
       }
     }
 
-    // Track Hardcoded Funnel (Only if no goal set, or for the funnel widget)
+    // Track Hardcoded Funnel
     const stepIndex = FUNNEL_STEPS.indexOf(event.eventName);
     if (stepIndex !== -1) {
       if (!stepTimes[userId]) stepTimes[userId] = {};
@@ -243,8 +237,6 @@ export default async function ProjectAnalyticsView({
   let conversionExplanation = "";
 
   if (primaryGoal) {
-    // Dynamic Goal Logic: (Users who did Goal / Total Users)
-    // You can swap this to Session based if you prefer
     const totalUnique = allUsers.size;
     conversionRate =
       totalUnique === 0 ? 0 : (goalUsers.size / totalUnique) * 100;
@@ -317,14 +309,13 @@ export default async function ProjectAnalyticsView({
   // ✅ APPLY ALIASES TO TOP EVENTS LIST
   const eventBreakdownData = Object.entries(eventsByName)
     .map(([eventName, count]) => {
-      // Look for alias
       const def = projectConfig?.eventDefinitions.find(
         (d) => d.name === eventName
       );
       return {
-        eventName: def?.title || eventName, // Use title if exists, else raw name
+        eventName: def?.title || eventName,
         count,
-        isCritical: def?.isCritical, // Optional: You could use this to highlight rows later
+        isCritical: def?.isCritical,
       };
     })
     .sort((a, b) => b.count - a.count);
@@ -336,13 +327,6 @@ export default async function ProjectAnalyticsView({
     users: funnelSteps[index].size,
   }));
 
-  // --- Styling ---
-  const bentoCard =
-    "bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 flex flex-col";
-  const cardHeader =
-    "font-bold text-gray-900 text-sm mb-6 flex items-center gap-2";
-  const standardHeight = "h-[450px]";
-
   const eventDictionary: Record<string, string> = {};
   projectConfig?.eventDefinitions.forEach((def) => {
     eventDictionary[def.name] = def.title || def.name;
@@ -350,115 +334,145 @@ export default async function ProjectAnalyticsView({
 
   const availableEventNames = Object.keys(eventsByName).sort();
 
+  // --- STYLING CONSTANTS ---
+  const bentoCard =
+    "bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 flex flex-col";
+  const cardHeader =
+    "font-bold text-gray-900 text-sm mb-6 flex items-center gap-2";
+
+  // This strict height ensures the left chart row matches the right list row
+  const CHART_HEIGHT = "h-[420px]";
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-      <div className="xl:col-span-8 flex flex-col gap-6 w-full">
-        <FilterBar />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">
-              Analytics Overview
-            </h3>
-            <p className="text-gray-500 text-sm mt-1">
-              Performance for the last{" "}
-              <span className="font-bold text-black">{range} days</span>
-            </p>
-          </div>
-          <TimeRangeSelector selected={range} projectId={projectId} />
-        </div>
+    <div className="space-y-6">
+      {/* 1. Global Filter Bar */}
+      <FilterBar />
 
-        {/* KPI ROW */}
-        <KpiRow
-          kpis={[
-            {
-              label: "Sessions",
-              value: sessionCount,
-              change: sessionsDelta,
-              explanation: "Unique sessions in this time period.",
-              chartData: sessionsTrend,
-            },
-            {
-              label: "Views",
-              value: totalPageViews,
-              change: viewsDelta,
-              explanation: "Total page views count.",
-              chartData: viewsTrend,
-            },
-            {
-              // ✅ DYNAMIC LABEL
-              label: conversionLabel,
-              value: `${conversionRate.toFixed(1)}%`,
-              explanation: conversionExplanation,
-            },
-            {
-              label: "Retention",
-              value: `${day1Retention.toFixed(1)}%`,
-              explanation: "Users returning after 24 hours.",
-            },
-          ]}
-        />
-
-        <div className={`${bentoCard} ${standardHeight}`}>
-          <div className="flex justify-between items-start mb-0">
-            <h4 className={cardHeader}>
-              <BarChart3 className="w-4 h-4 text-gray-400" /> Traffic Volume
-            </h4>
-          </div>
-          <div className="flex-1 w-full min-h-0">
-            <PageViewsChart data={chartData} />
-          </div>
-        </div>
-
-        <div
-          className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${standardHeight}`}
-        >
-          <div className={`${bentoCard} h-full`}>
-            <div className="mb-6 flex items-center justify-between">
-              <FunnelEditor
-                availableEvents={availableEventNames}
-                eventDictionary={eventDictionary}
-              />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        {/* === LEFT COLUMN (8 cols) === */}
+        <div className="xl:col-span-8 flex flex-col gap-6 w-full">
+          {/* Header & Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">
+                Analytics Overview
+              </h3>
+              <p className="text-gray-500 text-sm mt-1">
+                Last <span className="font-bold text-black">{range} days</span>
+              </p>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              <FunnelTable data={funnelData} />
+            <TimeRangeSelector selected={range} projectId={projectId} />
+          </div>
+
+          {/* KPI Cards */}
+          <KpiRow
+            kpis={[
+              {
+                label: "Sessions",
+                value: sessionCount,
+                change: sessionsDelta,
+                chartData: sessionsTrend,
+              },
+              {
+                label: "Views",
+                value: totalPageViews,
+                change: viewsDelta,
+                chartData: viewsTrend,
+              },
+              {
+                label: conversionLabel,
+                value: `${conversionRate.toFixed(1)}%`,
+                explanation: conversionExplanation,
+              },
+              {
+                label: "Retention",
+                value: `${day1Retention.toFixed(1)}%`,
+                explanation: "Users returning after 24 hours.",
+              },
+            ]}
+          />
+
+          {/* Row 1: Traffic Chart */}
+          <div className={`${bentoCard} ${CHART_HEIGHT}`}>
+            <div className="flex justify-between items-start mb-0">
+              <h4 className={cardHeader}>
+                <BarChart3 className="w-4 h-4 text-gray-400" /> Traffic Volume
+              </h4>
+            </div>
+            <div className="flex-1 w-full min-h-0">
+              <PageViewsChart data={chartData} />
             </div>
           </div>
-          <div className={`${bentoCard} h-full`}>
-            <div className="mb-6 flex items-center justify-between">
-              <RetentionPicker
-                availableEvents={availableEventNames}
-                currentEvent={retentionEvent}
-                eventDictionary={eventDictionary}
-              />
-            </div>
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              <RetentionTable
-                cohortSize={cohortUsers.length}
-                data={retention}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="xl:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex flex-col gap-6">{sideWidgets}</div>
-        <KeyEventsWidget data={criticalEvents} />
-        <div className={`${bentoCard} ${standardHeight}`}>
-          <h4 className={cardHeader}>
-            <Filter className="w-4 h-4 text-gray-400" /> Top Pages
-          </h4>
-          <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
-            <PageBreakdownTable data={pagebreakdownData} />
+          {/* Row 2: Funnel & Retention */}
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${CHART_HEIGHT}`}
+          >
+            {/* Funnel */}
+            <div className={`${bentoCard} h-full`}>
+              <div className="mb-6 flex items-center justify-between">
+                <FunnelEditor
+                  availableEvents={availableEventNames}
+                  eventDictionary={eventDictionary}
+                />
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <FunnelTable data={funnelData} />
+              </div>
+            </div>
+
+            {/* Retention */}
+            <div className={`${bentoCard} h-full`}>
+              <div className="mb-6 flex items-center justify-between">
+                <RetentionPicker
+                  availableEvents={availableEventNames}
+                  currentEvent={retentionEvent}
+                  eventDictionary={eventDictionary}
+                />
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <RetentionTable
+                  cohortSize={cohortUsers.length}
+                  data={retention}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${CHART_HEIGHT}`}
+          >
+            <div className={`${bentoCard} ${CHART_HEIGHT}`}>
+              <h4 className={cardHeader}>
+                <Filter className="w-4 h-4 text-gray-400" /> Top Pages
+              </h4>
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+                <PageBreakdownTable data={pagebreakdownData} />
+              </div>
+            </div>
+
+            {/* Row 2 Alignment: Top Events (Matches Funnel/Retention Height) */}
+            <div className={`${bentoCard} ${CHART_HEIGHT}`}>
+              <h4 className={cardHeader}>
+                <MousePointerClick className="w-4 h-4 text-gray-400" /> Top
+                Events
+              </h4>
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+                <EventBreakdownTable data={eventBreakdownData} />
+              </div>
+            </div>
           </div>
         </div>
-        <div className={`${bentoCard} ${standardHeight}`}>
-          <h4 className={cardHeader}>
-            <MousePointerClick className="w-4 h-4 text-gray-400" /> Top Events
-          </h4>
-          <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
-            <EventBreakdownTable data={eventBreakdownData} />
+
+        {/* === RIGHT COLUMN (4 cols) === */}
+        <div className="xl:col-span-4 flex flex-col gap-6 w-full">
+          {/* Top Section: Variable height info widgets */}
+          <div className="flex flex-col gap-6">
+            {sideWidgets}
+            <KeyEventsWidget data={criticalEvents} />
           </div>
+
+          {/* Row 1 Alignment: Top Pages (Matches Traffic Height) */}
         </div>
       </div>
     </div>
