@@ -15,10 +15,18 @@ import {
 } from "lucide-react";
 import { ReactNode } from "react";
 import KeyEventsWidget from "./key-events-widget";
+import FilterBar from "./filter-bar";
+import FunnelEditor from "./funnel-editor";
+import RetentionPicker from "./retention-picker";
 
 interface ProjectAnalyticsViewProps {
   projectId: string;
-  searchParams: { range?: string; retentionEvent?: string };
+  searchParams: {
+    range?: string;
+    retentionEvent?: string;
+    filters?: string;
+    funnel?: string;
+  };
   sideWidgets?: ReactNode;
 }
 
@@ -46,6 +54,30 @@ export default async function ProjectAnalyticsView({
 }: ProjectAnalyticsViewProps) {
   const range = Number(searchParams.range) || 30;
 
+  const filterParam = searchParams.filters || ""; // "plan:equals:premium"
+  const filters = filterParam
+    .split(",")
+    .filter(Boolean)
+    .map((f: string) => {
+      const [key, op, val] = f.split(":");
+      return { key, op, val };
+    });
+
+  // ✅ 2. CONSTRUCT PRISMA FILTER
+  // This object will be spread (...) into every single prisma query
+  const propertyFilters: any = {};
+
+  if (filters.length > 0) {
+    // Prisma JSON filtering syntax
+    // AND: [ { properties: { path: ['key'], equals: 'value' } } ]
+    propertyFilters.AND = filters.map((f) => ({
+      properties: {
+        path: [f.key],
+        [f.op === "contains" ? "string_contains" : "equals"]: f.val,
+      },
+    }));
+  }
+
   // ✅ 1. FETCH PROJECT SETTINGS (Goal & Aliases)
   const projectConfig = await prisma.project.findUnique({
     where: { id: projectId },
@@ -68,11 +100,22 @@ export default async function ProjectAnalyticsView({
   const previousEnd = new Date(currentStart);
 
   // Fallback Funnel if no goal is set
-  const FUNNEL_STEPS = ["page_view", "signup_started", "signup_completed"];
+  let FUNNEL_STEPS = ["page_view", "signup_started", "signup_completed"];
+
+  if (searchParams.funnel) {
+    FUNNEL_STEPS = searchParams.funnel.split(",");
+  } else if (primaryGoal) {
+    // If no custom funnel, but a goal is set, maybe default to [page_view -> goal]?
+    // For now, let's keep the URL override as the main way to change the table.
+  }
 
   // 2. Fetch Events (Current Period)
   const events = await prisma.event.findMany({
-    where: { projectId: projectId, createdAt: { gte: currentStart } },
+    where: {
+      projectId: projectId,
+      createdAt: { gte: currentStart },
+      ...propertyFilters,
+    },
     select: {
       eventName: true,
       createdAt: true,
@@ -90,6 +133,7 @@ export default async function ProjectAnalyticsView({
         projectId: projectId,
         eventName: "page_view",
         createdAt: { gte: previousStart, lt: previousEnd },
+        ...propertyFilters,
       },
     }),
     prisma.event.groupBy({
@@ -98,6 +142,7 @@ export default async function ProjectAnalyticsView({
         projectId: projectId,
         createdAt: { gte: previousStart, lt: previousEnd },
         sessionId: { not: null },
+        ...propertyFilters,
       },
     }),
   ]);
@@ -298,9 +343,17 @@ export default async function ProjectAnalyticsView({
     "font-bold text-gray-900 text-sm mb-6 flex items-center gap-2";
   const standardHeight = "h-[450px]";
 
+  const eventDictionary: Record<string, string> = {};
+  projectConfig?.eventDefinitions.forEach((def) => {
+    eventDictionary[def.name] = def.title || def.name;
+  });
+
+  const availableEventNames = Object.keys(eventsByName).sort();
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
       <div className="xl:col-span-8 flex flex-col gap-6 w-full">
+        <FilterBar />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm">
           <div>
             <h3 className="text-xl font-bold text-gray-900">
@@ -360,17 +413,24 @@ export default async function ProjectAnalyticsView({
           className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${standardHeight}`}
         >
           <div className={`${bentoCard} h-full`}>
-            <h4 className={cardHeader}>
-              <ArrowDownUp className="w-4 h-4 text-gray-400" /> Funnel
-            </h4>
+            <div className="mb-6 flex items-center justify-between">
+              <FunnelEditor
+                availableEvents={availableEventNames}
+                eventDictionary={eventDictionary}
+              />
+            </div>
             <div className="flex-1 min-h-0 overflow-y-auto">
               <FunnelTable data={funnelData} />
             </div>
           </div>
           <div className={`${bentoCard} h-full`}>
-            <h4 className={cardHeader}>
-              <Repeat className="w-4 h-4 text-gray-400" /> Retention
-            </h4>
+            <div className="mb-6 flex items-center justify-between">
+              <RetentionPicker
+                availableEvents={availableEventNames}
+                currentEvent={retentionEvent}
+                eventDictionary={eventDictionary}
+              />
+            </div>
             <div className="flex-1 min-h-0 overflow-y-auto">
               <RetentionTable
                 cohortSize={cohortUsers.length}
