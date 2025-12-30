@@ -15,22 +15,68 @@ import { ProjectHeader } from "@/components/project-header";
 import { Sidebar } from "@/components/sidebar";
 import { canInviteToProject, canManageOrganization } from "@/lib/permissions";
 import ProjectAnalyticsView from "@/components/analytics/project-analytics-view";
-// 1. Import Setup Guide
 import SetupGuide from "@/components/analytics/setup-guide";
-import { SdkStatusWidget } from "@/components/analytics/sdk-status-widget"; // Assuming you kept this from prev step
+import { SdkStatusWidget } from "@/components/analytics/sdk-status-widget";
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ range?: string; retentionEvent?: string }>;
+  searchParams: Promise<{ 
+    range?: string; 
+    retentionEvent?: string; 
+    filters?: string; 
+    funnel?: string; 
+  }>;
 }
 
 export default async function ProjectPage({ params, searchParams }: PageProps) {
+  const { projectId } = await params;
+  const resolvedSearchParams = await searchParams; // ✅ Resolve params early
+
+  // --- 1. DEMO MODE BYPASS ---
+  // If accessing /project/demo, render the dashboard immediately with mock data.
+  if (projectId === "demo") {
+    return (
+      <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans">
+        {/* Dummy Sidebar for Demo */}
+        <Sidebar currentOrgId="demo-org" showSettings={false} />
+
+        <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto">
+          {/* Breadcrumb (Static for Demo) */}
+          <div className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-500">
+             <span className="text-gray-400">Dashboard</span>
+             <ChevronRight className="w-4 h-4 text-gray-400" />
+             <span className="text-gray-400">Projects</span>
+             <ChevronRight className="w-4 h-4 text-gray-400" />
+             <span className="text-black font-bold bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100">
+               Live Demo
+             </span>
+          </div>
+
+          <div className="mb-8">
+             <ProjectHeader 
+                projectName="Analyz Live Demo"
+                projectId="demo"
+                userRole="PROJECT_OWNER"
+                canInvite={false}
+                orgId="demo-org"
+             />
+          </div>
+
+          {/* Render Analytics View Directly */}
+          <ProjectAnalyticsView 
+             projectId="demo" 
+             searchParams={resolvedSearchParams}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  // --- 2. REAL PROJECT LOGIC (Auth & DB Checks) ---
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return redirect("/auth/login");
 
-  const { projectId } = await params;
-
-  // 1. Fetch Project
+  // Fetch Project
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     include: {
@@ -43,7 +89,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (!project) return notFound();
 
-  // 2. Fetch Role
+  // Fetch Role
   const orgMembership = await prisma.membership.findUnique({
     where: {
       userId_organizationId: {
@@ -55,7 +101,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (!orgMembership) return notFound();
 
-  // 3. Determine Access
+  // Determine Access
   const explicitProjectRole = project.members[0]?.role;
   const orgRole = orgMembership.role;
 
@@ -66,35 +112,22 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (!hasAccess) return notFound();
 
-  // 4. Permissions
+  // Permissions
   const displayRole = explicitProjectRole || orgRole;
   const showInvite = canInviteToProject(orgRole, explicitProjectRole);
   const showOrgSettings = canManageOrganization(orgRole);
 
-  // 5. Fetch Data
+  // Fetch Data for Setup State
   const eventsCount = await prisma.event.count({
     where: { projectId: project.id },
   });
 
-  // --- LOGIC: NEW PROJECT DETECTION ---
-  // If the project has 0 events, we treat it as "Just Created" or "Needs Setup"
   const showSetupGuide = eventsCount === 0;
 
-  // Only fetch analytical data if we have events (optimization)
-  let resolvedParams = await searchParams;
-  let activeUsersCount = 0;
+  // Only fetch widget data if we have events
   let lastEvent = null;
 
   if (!showSetupGuide) {
-    const activeUsersGroup = await prisma.event.groupBy({
-      by: ["userId"],
-      where: {
-        projectId: project.id,
-        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-      },
-    });
-    activeUsersCount = activeUsersGroup.length;
-    
     // Fetch last event for SDK Widget
     lastEvent = await prisma.event.findFirst({
         where: { projectId: project.id },
@@ -103,6 +136,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
     });
   }
 
+  // --- SIDEBAR WIDGETS ---
   const ApiKeyWidget = (
     <div className="bg-[#111] text-gray-300 rounded-[24px] p-6 shadow-xl shadow-gray-200/50 mb-6">
       <div className="flex items-center gap-3 mb-4">
@@ -160,7 +194,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
         ) : (
           <ProjectAnalyticsView
             projectId={project.id}
-            searchParams={resolvedParams}
+            searchParams={resolvedSearchParams}
             sideWidgets={
               <>
                 {SdkWidget}
