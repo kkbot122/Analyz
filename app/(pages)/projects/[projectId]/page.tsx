@@ -4,13 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,
-  Activity,
-  Users,
-  Globe,
-  Shield,
-  Key,
-  Copy,
   ChevronRight,
+  Shield,
+  Copy,
   Terminal,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +14,9 @@ import { ProjectHeader } from "@/components/project-header";
 import { Sidebar } from "@/components/sidebar";
 import { canInviteToProject, canManageOrganization } from "@/lib/permissions";
 import ProjectAnalyticsView from "@/components/analytics/project-analytics-view";
+// 1. Import Setup Guide
+import SetupGuide from "@/components/analytics/setup-guide";
+import { SdkStatusWidget } from "@/components/analytics/sdk-status-widget"; // Assuming you kept this from prev step
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
@@ -76,18 +75,36 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
     where: { projectId: project.id },
   });
 
-  const activeUsersGroup = await prisma.event.groupBy({
-    by: ["userId"],
-    where: {
-      projectId: project.id,
-      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    },
-  });
-  const activeUsersCount = activeUsersGroup.length;
+  // --- LOGIC: NEW PROJECT DETECTION ---
+  // If the project has 0 events, we treat it as "Just Created" or "Needs Setup"
+  const showSetupGuide = eventsCount === 0;
 
-  const resolvedParams = await searchParams;
+  // Only fetch analytical data if we have events (optimization)
+  let resolvedParams = await searchParams;
+  let activeUsersCount = 0;
+  let lastEvent = null;
+
+  if (!showSetupGuide) {
+    const activeUsersGroup = await prisma.event.groupBy({
+      by: ["userId"],
+      where: {
+        projectId: project.id,
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+    });
+    activeUsersCount = activeUsersGroup.length;
+    
+    // Fetch last event for SDK Widget
+    lastEvent = await prisma.event.findFirst({
+        where: { projectId: project.id },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true, properties: true } 
+    });
+  }
+
+  // --- WIDGETS ---
   const AccessContextWidget = (
-    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 mb-6 min-h-[250px]">
+    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 mb-6">
       <div className="flex items-center gap-3 mb-6 border-b border-gray-50 pb-4">
         <div className="p-2 bg-gray-100 rounded-lg">
           <Shield className="w-5 h-5 text-gray-600" />
@@ -96,12 +113,8 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
       </div>
       <div className="space-y-4">
         <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
-          <span className="text-sm text-gray-500 font-medium">
-            Organization
-          </span>
-          <span className="text-sm font-bold text-gray-900">
-            {project.organization.name}
-          </span>
+          <span className="text-sm text-gray-500 font-medium">Organization</span>
+          <span className="text-sm font-bold text-gray-900">{project.organization.name}</span>
         </div>
         <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors">
           <span className="text-sm text-gray-500 font-medium">Your Role</span>
@@ -133,32 +146,21 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
     </div>
   );
 
-  // Styling
-  const cardBase =
-    "bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300";
+  const SdkWidget = !showSetupGuide ? <SdkStatusWidget lastEvent={lastEvent} /> : null;
 
   return (
     <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans">
-      {/* 1. SIDEBAR */}
       <Sidebar
         currentOrgId={project.organizationId}
         showSettings={showOrgSettings}
       />
 
-      {/* 2. MAIN CONTENT */}
       <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto" suppressHydrationWarning>
         {/* Navigation Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-500">
-          <Link
-            href="/dashboard"
-            className="hover:text-black transition-colors flex items-center gap-1"
-          >
-            Dashboard
-          </Link>
+          <Link href="/dashboard" className="hover:text-black transition-colors">Dashboard</Link>
           <ChevronRight className="w-4 h-4 text-gray-400" />
-          <Link href="/projects" className="hover:text-black transition-colors">
-            Projects
-          </Link>
+          <Link href="/projects" className="hover:text-black transition-colors">Projects</Link>
           <ChevronRight className="w-4 h-4 text-gray-400" />
           <span className="text-black font-bold bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100">
             {project.name}
@@ -175,17 +177,22 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
           />
         </div>
 
-        <ProjectAnalyticsView
-          projectId={project.id}
-          searchParams={resolvedParams}
-          sideWidgets={
-            <>
-              {AccessContextWidget}
-              {ApiKeyWidget}
-            </>
-          }
-        />
-
+        {/* --- CONDITIONAL RENDERING: Setup vs Dashboard --- */}
+        {showSetupGuide ? (
+          <SetupGuide projectId={project.id} />
+        ) : (
+          <ProjectAnalyticsView
+            projectId={project.id}
+            searchParams={resolvedParams}
+            sideWidgets={
+              <>
+                {SdkWidget}
+                {AccessContextWidget}
+                {ApiKeyWidget}
+              </>
+            }
+          />
+        )}
       </main>
     </div>
   );

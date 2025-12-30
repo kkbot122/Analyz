@@ -185,10 +185,31 @@ export default async function ProjectAnalyticsView({
         {/* 2. KPI Cards */}
         <KpiRow
           kpis={[
-            { label: "Sessions", value: sessionCount },
-            { label: "Views", value: totalPageViews },
-            { label: "Conversion", value: `${conversionRate.toFixed(1)}%` },
-            { label: "Retention (D1)", value: `${day1Retention.toFixed(1)}%` },
+            {
+              label: "Sessions",
+              value: sessionCount,
+              explanation:
+                "A session is a group of user interactions within a given time frame. It ends after 30 minutes of inactivity.",
+            },
+            {
+              label: "Views",
+              value: totalPageViews,
+              explanation:
+                "The total number of pages viewed. Includes repeated views of a single page.",
+            },
+            {
+              label: "Conversion",
+              value: `${conversionRate.toFixed(1)}%`,
+              explanation: `Percentage of users who completed the funnel: ${FUNNEL_STEPS.join(
+                " → "
+              )}`,
+            },
+            {
+              label: "Retention",
+              value: `${day1Retention.toFixed(1)}%`,
+              explanation:
+                "Percentage of users who returned to the app exactly 1 day after their first visit.",
+            },
           ]}
         />
 

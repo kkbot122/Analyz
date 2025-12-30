@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   title: "Analyz - Analytics Made Simple",
   description: "Analytics Made Simple",
   icons: {
-    icon: "/logo.png", // /public/logo.png
-    shortcut: "/logo.png",
-    apple: "/logo.png", // Optional: for Apple devices
+    icon: "/logo_A.png", // /public/logo.png
+    shortcut: "/logo_A.png",
+    apple: "/logo_A.png", // Optional: for Apple devices
   },
 };
 
