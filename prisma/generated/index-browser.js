@@ -151,7 +151,9 @@ exports.Prisma.ProjectScalarFieldEnum = {
   name: 'name',
   createdAt: 'createdAt',
   organizationId: 'organizationId',
-  ownerId: 'ownerId'
+  ownerId: 'ownerId',
+  primaryGoal: 'primaryGoal',
+  goalWindow: 'goalWindow'
 };
 
 exports.Prisma.EventScalarFieldEnum = {
@@ -212,6 +214,18 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
+exports.Prisma.EventDefinitionScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  title: 'title',
+  category: 'category',
+  emoji: 'emoji',
+  isCritical: 'isCritical',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -258,7 +272,8 @@ exports.Prisma.ModelName = {
   Invite: 'Invite',
   Account: 'Account',
   Session: 'Session',
-  VerificationToken: 'VerificationToken'
+  VerificationToken: 'VerificationToken',
+  EventDefinition: 'EventDefinition'
 };
 
 /**

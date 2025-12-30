@@ -63,6 +63,11 @@ export type Session = $Result.DefaultSelection<Prisma.$SessionPayload>
  * 
  */
 export type VerificationToken = $Result.DefaultSelection<Prisma.$VerificationTokenPayload>
+/**
+ * Model EventDefinition
+ * 
+ */
+export type EventDefinition = $Result.DefaultSelection<Prisma.$EventDefinitionPayload>
 
 /**
  * Enums
@@ -310,6 +315,16 @@ export class PrismaClient<
     * ```
     */
   get verificationToken(): Prisma.VerificationTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.eventDefinition`: Exposes CRUD operations for the **EventDefinition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EventDefinitions
+    * const eventDefinitions = await prisma.eventDefinition.findMany()
+    * ```
+    */
+  get eventDefinition(): Prisma.EventDefinitionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -753,7 +768,8 @@ export namespace Prisma {
     Invite: 'Invite',
     Account: 'Account',
     Session: 'Session',
-    VerificationToken: 'VerificationToken'
+    VerificationToken: 'VerificationToken',
+    EventDefinition: 'EventDefinition'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -769,7 +785,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "organization" | "membership" | "project" | "event" | "projectMember" | "invite" | "account" | "session" | "verificationToken"
+      modelProps: "user" | "organization" | "membership" | "project" | "event" | "projectMember" | "invite" | "account" | "session" | "verificationToken" | "eventDefinition"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1513,6 +1529,80 @@ export namespace Prisma {
           }
         }
       }
+      EventDefinition: {
+        payload: Prisma.$EventDefinitionPayload<ExtArgs>
+        fields: Prisma.EventDefinitionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EventDefinitionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EventDefinitionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>
+          }
+          findFirst: {
+            args: Prisma.EventDefinitionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EventDefinitionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>
+          }
+          findMany: {
+            args: Prisma.EventDefinitionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>[]
+          }
+          create: {
+            args: Prisma.EventDefinitionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>
+          }
+          createMany: {
+            args: Prisma.EventDefinitionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EventDefinitionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>[]
+          }
+          delete: {
+            args: Prisma.EventDefinitionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>
+          }
+          update: {
+            args: Prisma.EventDefinitionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>
+          }
+          deleteMany: {
+            args: Prisma.EventDefinitionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EventDefinitionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EventDefinitionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>[]
+          }
+          upsert: {
+            args: Prisma.EventDefinitionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventDefinitionPayload>
+          }
+          aggregate: {
+            args: Prisma.EventDefinitionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEventDefinition>
+          }
+          groupBy: {
+            args: Prisma.EventDefinitionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EventDefinitionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EventDefinitionCountArgs<ExtArgs>
+            result: $Utils.Optional<EventDefinitionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1631,6 +1721,7 @@ export namespace Prisma {
     account?: AccountOmit
     session?: SessionOmit
     verificationToken?: VerificationTokenOmit
+    eventDefinition?: EventDefinitionOmit
   }
 
   /* Types for Logging */
@@ -1839,12 +1930,14 @@ export namespace Prisma {
     members: number
     invites: number
     events: number
+    eventDefinitions: number
   }
 
   export type ProjectCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | ProjectCountOutputTypeCountMembersArgs
     invites?: boolean | ProjectCountOutputTypeCountInvitesArgs
     events?: boolean | ProjectCountOutputTypeCountEventsArgs
+    eventDefinitions?: boolean | ProjectCountOutputTypeCountEventDefinitionsArgs
   }
 
   // Custom InputTypes
@@ -1877,6 +1970,13 @@ export namespace Prisma {
    */
   export type ProjectCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EventWhereInput
+  }
+
+  /**
+   * ProjectCountOutputType without action
+   */
+  export type ProjectCountOutputTypeCountEventDefinitionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventDefinitionWhereInput
   }
 
 
@@ -5336,8 +5436,18 @@ export namespace Prisma {
 
   export type AggregateProject = {
     _count: ProjectCountAggregateOutputType | null
+    _avg: ProjectAvgAggregateOutputType | null
+    _sum: ProjectSumAggregateOutputType | null
     _min: ProjectMinAggregateOutputType | null
     _max: ProjectMaxAggregateOutputType | null
+  }
+
+  export type ProjectAvgAggregateOutputType = {
+    goalWindow: number | null
+  }
+
+  export type ProjectSumAggregateOutputType = {
+    goalWindow: number | null
   }
 
   export type ProjectMinAggregateOutputType = {
@@ -5346,6 +5456,8 @@ export namespace Prisma {
     createdAt: Date | null
     organizationId: string | null
     ownerId: string | null
+    primaryGoal: string | null
+    goalWindow: number | null
   }
 
   export type ProjectMaxAggregateOutputType = {
@@ -5354,6 +5466,8 @@ export namespace Prisma {
     createdAt: Date | null
     organizationId: string | null
     ownerId: string | null
+    primaryGoal: string | null
+    goalWindow: number | null
   }
 
   export type ProjectCountAggregateOutputType = {
@@ -5362,9 +5476,19 @@ export namespace Prisma {
     createdAt: number
     organizationId: number
     ownerId: number
+    primaryGoal: number
+    goalWindow: number
     _all: number
   }
 
+
+  export type ProjectAvgAggregateInputType = {
+    goalWindow?: true
+  }
+
+  export type ProjectSumAggregateInputType = {
+    goalWindow?: true
+  }
 
   export type ProjectMinAggregateInputType = {
     id?: true
@@ -5372,6 +5496,8 @@ export namespace Prisma {
     createdAt?: true
     organizationId?: true
     ownerId?: true
+    primaryGoal?: true
+    goalWindow?: true
   }
 
   export type ProjectMaxAggregateInputType = {
@@ -5380,6 +5506,8 @@ export namespace Prisma {
     createdAt?: true
     organizationId?: true
     ownerId?: true
+    primaryGoal?: true
+    goalWindow?: true
   }
 
   export type ProjectCountAggregateInputType = {
@@ -5388,6 +5516,8 @@ export namespace Prisma {
     createdAt?: true
     organizationId?: true
     ownerId?: true
+    primaryGoal?: true
+    goalWindow?: true
     _all?: true
   }
 
@@ -5429,6 +5559,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ProjectAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProjectSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ProjectMinAggregateInputType
@@ -5459,6 +5601,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ProjectCountAggregateInputType | true
+    _avg?: ProjectAvgAggregateInputType
+    _sum?: ProjectSumAggregateInputType
     _min?: ProjectMinAggregateInputType
     _max?: ProjectMaxAggregateInputType
   }
@@ -5469,7 +5613,11 @@ export namespace Prisma {
     createdAt: Date
     organizationId: string
     ownerId: string
+    primaryGoal: string | null
+    goalWindow: number
     _count: ProjectCountAggregateOutputType | null
+    _avg: ProjectAvgAggregateOutputType | null
+    _sum: ProjectSumAggregateOutputType | null
     _min: ProjectMinAggregateOutputType | null
     _max: ProjectMaxAggregateOutputType | null
   }
@@ -5494,11 +5642,14 @@ export namespace Prisma {
     createdAt?: boolean
     organizationId?: boolean
     ownerId?: boolean
+    primaryGoal?: boolean
+    goalWindow?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
     members?: boolean | Project$membersArgs<ExtArgs>
     invites?: boolean | Project$invitesArgs<ExtArgs>
     events?: boolean | Project$eventsArgs<ExtArgs>
+    eventDefinitions?: boolean | Project$eventDefinitionsArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
 
@@ -5508,6 +5659,8 @@ export namespace Prisma {
     createdAt?: boolean
     organizationId?: boolean
     ownerId?: boolean
+    primaryGoal?: boolean
+    goalWindow?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
@@ -5518,6 +5671,8 @@ export namespace Prisma {
     createdAt?: boolean
     organizationId?: boolean
     ownerId?: boolean
+    primaryGoal?: boolean
+    goalWindow?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
@@ -5528,15 +5683,18 @@ export namespace Prisma {
     createdAt?: boolean
     organizationId?: boolean
     ownerId?: boolean
+    primaryGoal?: boolean
+    goalWindow?: boolean
   }
 
-  export type ProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "createdAt" | "organizationId" | "ownerId", ExtArgs["result"]["project"]>
+  export type ProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "createdAt" | "organizationId" | "ownerId" | "primaryGoal" | "goalWindow", ExtArgs["result"]["project"]>
   export type ProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
     members?: boolean | Project$membersArgs<ExtArgs>
     invites?: boolean | Project$invitesArgs<ExtArgs>
     events?: boolean | Project$eventsArgs<ExtArgs>
+    eventDefinitions?: boolean | Project$eventDefinitionsArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5556,6 +5714,7 @@ export namespace Prisma {
       members: Prisma.$ProjectMemberPayload<ExtArgs>[]
       invites: Prisma.$InvitePayload<ExtArgs>[]
       events: Prisma.$EventPayload<ExtArgs>[]
+      eventDefinitions: Prisma.$EventDefinitionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5563,6 +5722,8 @@ export namespace Prisma {
       createdAt: Date
       organizationId: string
       ownerId: string
+      primaryGoal: string | null
+      goalWindow: number
     }, ExtArgs["result"]["project"]>
     composites: {}
   }
@@ -5962,6 +6123,7 @@ export namespace Prisma {
     members<T extends Project$membersArgs<ExtArgs> = {}>(args?: Subset<T, Project$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     invites<T extends Project$invitesArgs<ExtArgs> = {}>(args?: Subset<T, Project$invitesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     events<T extends Project$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Project$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    eventDefinitions<T extends Project$eventDefinitionsArgs<ExtArgs> = {}>(args?: Subset<T, Project$eventDefinitionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5996,6 +6158,8 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Project", 'DateTime'>
     readonly organizationId: FieldRef<"Project", 'String'>
     readonly ownerId: FieldRef<"Project", 'String'>
+    readonly primaryGoal: FieldRef<"Project", 'String'>
+    readonly goalWindow: FieldRef<"Project", 'Int'>
   }
     
 
@@ -6461,6 +6625,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EventScalarFieldEnum | EventScalarFieldEnum[]
+  }
+
+  /**
+   * Project.eventDefinitions
+   */
+  export type Project$eventDefinitionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    where?: EventDefinitionWhereInput
+    orderBy?: EventDefinitionOrderByWithRelationInput | EventDefinitionOrderByWithRelationInput[]
+    cursor?: EventDefinitionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EventDefinitionScalarFieldEnum | EventDefinitionScalarFieldEnum[]
   }
 
   /**
@@ -12959,6 +13147,1116 @@ export namespace Prisma {
 
 
   /**
+   * Model EventDefinition
+   */
+
+  export type AggregateEventDefinition = {
+    _count: EventDefinitionCountAggregateOutputType | null
+    _min: EventDefinitionMinAggregateOutputType | null
+    _max: EventDefinitionMaxAggregateOutputType | null
+  }
+
+  export type EventDefinitionMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    name: string | null
+    title: string | null
+    category: string | null
+    emoji: string | null
+    isCritical: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EventDefinitionMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    name: string | null
+    title: string | null
+    category: string | null
+    emoji: string | null
+    isCritical: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EventDefinitionCountAggregateOutputType = {
+    id: number
+    projectId: number
+    name: number
+    title: number
+    category: number
+    emoji: number
+    isCritical: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EventDefinitionMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    title?: true
+    category?: true
+    emoji?: true
+    isCritical?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EventDefinitionMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    title?: true
+    category?: true
+    emoji?: true
+    isCritical?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EventDefinitionCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    title?: true
+    category?: true
+    emoji?: true
+    isCritical?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EventDefinitionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EventDefinition to aggregate.
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventDefinitions to fetch.
+     */
+    orderBy?: EventDefinitionOrderByWithRelationInput | EventDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EventDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EventDefinitions
+    **/
+    _count?: true | EventDefinitionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EventDefinitionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EventDefinitionMaxAggregateInputType
+  }
+
+  export type GetEventDefinitionAggregateType<T extends EventDefinitionAggregateArgs> = {
+        [P in keyof T & keyof AggregateEventDefinition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEventDefinition[P]>
+      : GetScalarType<T[P], AggregateEventDefinition[P]>
+  }
+
+
+
+
+  export type EventDefinitionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventDefinitionWhereInput
+    orderBy?: EventDefinitionOrderByWithAggregationInput | EventDefinitionOrderByWithAggregationInput[]
+    by: EventDefinitionScalarFieldEnum[] | EventDefinitionScalarFieldEnum
+    having?: EventDefinitionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EventDefinitionCountAggregateInputType | true
+    _min?: EventDefinitionMinAggregateInputType
+    _max?: EventDefinitionMaxAggregateInputType
+  }
+
+  export type EventDefinitionGroupByOutputType = {
+    id: string
+    projectId: string
+    name: string
+    title: string | null
+    category: string | null
+    emoji: string | null
+    isCritical: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: EventDefinitionCountAggregateOutputType | null
+    _min: EventDefinitionMinAggregateOutputType | null
+    _max: EventDefinitionMaxAggregateOutputType | null
+  }
+
+  type GetEventDefinitionGroupByPayload<T extends EventDefinitionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EventDefinitionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EventDefinitionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EventDefinitionGroupByOutputType[P]>
+            : GetScalarType<T[P], EventDefinitionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EventDefinitionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    title?: boolean
+    category?: boolean
+    emoji?: boolean
+    isCritical?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventDefinition"]>
+
+  export type EventDefinitionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    title?: boolean
+    category?: boolean
+    emoji?: boolean
+    isCritical?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventDefinition"]>
+
+  export type EventDefinitionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    title?: boolean
+    category?: boolean
+    emoji?: boolean
+    isCritical?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventDefinition"]>
+
+  export type EventDefinitionSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    title?: boolean
+    category?: boolean
+    emoji?: boolean
+    isCritical?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EventDefinitionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "name" | "title" | "category" | "emoji" | "isCritical" | "createdAt" | "updatedAt", ExtArgs["result"]["eventDefinition"]>
+  export type EventDefinitionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type EventDefinitionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type EventDefinitionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $EventDefinitionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EventDefinition"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      name: string
+      title: string | null
+      category: string | null
+      emoji: string | null
+      isCritical: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eventDefinition"]>
+    composites: {}
+  }
+
+  type EventDefinitionGetPayload<S extends boolean | null | undefined | EventDefinitionDefaultArgs> = $Result.GetResult<Prisma.$EventDefinitionPayload, S>
+
+  type EventDefinitionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EventDefinitionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EventDefinitionCountAggregateInputType | true
+    }
+
+  export interface EventDefinitionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EventDefinition'], meta: { name: 'EventDefinition' } }
+    /**
+     * Find zero or one EventDefinition that matches the filter.
+     * @param {EventDefinitionFindUniqueArgs} args - Arguments to find a EventDefinition
+     * @example
+     * // Get one EventDefinition
+     * const eventDefinition = await prisma.eventDefinition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EventDefinitionFindUniqueArgs>(args: SelectSubset<T, EventDefinitionFindUniqueArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EventDefinition that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EventDefinitionFindUniqueOrThrowArgs} args - Arguments to find a EventDefinition
+     * @example
+     * // Get one EventDefinition
+     * const eventDefinition = await prisma.eventDefinition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EventDefinitionFindUniqueOrThrowArgs>(args: SelectSubset<T, EventDefinitionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EventDefinition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionFindFirstArgs} args - Arguments to find a EventDefinition
+     * @example
+     * // Get one EventDefinition
+     * const eventDefinition = await prisma.eventDefinition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EventDefinitionFindFirstArgs>(args?: SelectSubset<T, EventDefinitionFindFirstArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EventDefinition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionFindFirstOrThrowArgs} args - Arguments to find a EventDefinition
+     * @example
+     * // Get one EventDefinition
+     * const eventDefinition = await prisma.eventDefinition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EventDefinitionFindFirstOrThrowArgs>(args?: SelectSubset<T, EventDefinitionFindFirstOrThrowArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EventDefinitions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EventDefinitions
+     * const eventDefinitions = await prisma.eventDefinition.findMany()
+     * 
+     * // Get first 10 EventDefinitions
+     * const eventDefinitions = await prisma.eventDefinition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eventDefinitionWithIdOnly = await prisma.eventDefinition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EventDefinitionFindManyArgs>(args?: SelectSubset<T, EventDefinitionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EventDefinition.
+     * @param {EventDefinitionCreateArgs} args - Arguments to create a EventDefinition.
+     * @example
+     * // Create one EventDefinition
+     * const EventDefinition = await prisma.eventDefinition.create({
+     *   data: {
+     *     // ... data to create a EventDefinition
+     *   }
+     * })
+     * 
+     */
+    create<T extends EventDefinitionCreateArgs>(args: SelectSubset<T, EventDefinitionCreateArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EventDefinitions.
+     * @param {EventDefinitionCreateManyArgs} args - Arguments to create many EventDefinitions.
+     * @example
+     * // Create many EventDefinitions
+     * const eventDefinition = await prisma.eventDefinition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EventDefinitionCreateManyArgs>(args?: SelectSubset<T, EventDefinitionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EventDefinitions and returns the data saved in the database.
+     * @param {EventDefinitionCreateManyAndReturnArgs} args - Arguments to create many EventDefinitions.
+     * @example
+     * // Create many EventDefinitions
+     * const eventDefinition = await prisma.eventDefinition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EventDefinitions and only return the `id`
+     * const eventDefinitionWithIdOnly = await prisma.eventDefinition.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EventDefinitionCreateManyAndReturnArgs>(args?: SelectSubset<T, EventDefinitionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EventDefinition.
+     * @param {EventDefinitionDeleteArgs} args - Arguments to delete one EventDefinition.
+     * @example
+     * // Delete one EventDefinition
+     * const EventDefinition = await prisma.eventDefinition.delete({
+     *   where: {
+     *     // ... filter to delete one EventDefinition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EventDefinitionDeleteArgs>(args: SelectSubset<T, EventDefinitionDeleteArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EventDefinition.
+     * @param {EventDefinitionUpdateArgs} args - Arguments to update one EventDefinition.
+     * @example
+     * // Update one EventDefinition
+     * const eventDefinition = await prisma.eventDefinition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EventDefinitionUpdateArgs>(args: SelectSubset<T, EventDefinitionUpdateArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EventDefinitions.
+     * @param {EventDefinitionDeleteManyArgs} args - Arguments to filter EventDefinitions to delete.
+     * @example
+     * // Delete a few EventDefinitions
+     * const { count } = await prisma.eventDefinition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EventDefinitionDeleteManyArgs>(args?: SelectSubset<T, EventDefinitionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EventDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EventDefinitions
+     * const eventDefinition = await prisma.eventDefinition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EventDefinitionUpdateManyArgs>(args: SelectSubset<T, EventDefinitionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EventDefinitions and returns the data updated in the database.
+     * @param {EventDefinitionUpdateManyAndReturnArgs} args - Arguments to update many EventDefinitions.
+     * @example
+     * // Update many EventDefinitions
+     * const eventDefinition = await prisma.eventDefinition.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EventDefinitions and only return the `id`
+     * const eventDefinitionWithIdOnly = await prisma.eventDefinition.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EventDefinitionUpdateManyAndReturnArgs>(args: SelectSubset<T, EventDefinitionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EventDefinition.
+     * @param {EventDefinitionUpsertArgs} args - Arguments to update or create a EventDefinition.
+     * @example
+     * // Update or create a EventDefinition
+     * const eventDefinition = await prisma.eventDefinition.upsert({
+     *   create: {
+     *     // ... data to create a EventDefinition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EventDefinition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EventDefinitionUpsertArgs>(args: SelectSubset<T, EventDefinitionUpsertArgs<ExtArgs>>): Prisma__EventDefinitionClient<$Result.GetResult<Prisma.$EventDefinitionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EventDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionCountArgs} args - Arguments to filter EventDefinitions to count.
+     * @example
+     * // Count the number of EventDefinitions
+     * const count = await prisma.eventDefinition.count({
+     *   where: {
+     *     // ... the filter for the EventDefinitions we want to count
+     *   }
+     * })
+    **/
+    count<T extends EventDefinitionCountArgs>(
+      args?: Subset<T, EventDefinitionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EventDefinitionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EventDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EventDefinitionAggregateArgs>(args: Subset<T, EventDefinitionAggregateArgs>): Prisma.PrismaPromise<GetEventDefinitionAggregateType<T>>
+
+    /**
+     * Group by EventDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventDefinitionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EventDefinitionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EventDefinitionGroupByArgs['orderBy'] }
+        : { orderBy?: EventDefinitionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EventDefinitionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEventDefinitionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EventDefinition model
+   */
+  readonly fields: EventDefinitionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EventDefinition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EventDefinitionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EventDefinition model
+   */
+  interface EventDefinitionFieldRefs {
+    readonly id: FieldRef<"EventDefinition", 'String'>
+    readonly projectId: FieldRef<"EventDefinition", 'String'>
+    readonly name: FieldRef<"EventDefinition", 'String'>
+    readonly title: FieldRef<"EventDefinition", 'String'>
+    readonly category: FieldRef<"EventDefinition", 'String'>
+    readonly emoji: FieldRef<"EventDefinition", 'String'>
+    readonly isCritical: FieldRef<"EventDefinition", 'Boolean'>
+    readonly createdAt: FieldRef<"EventDefinition", 'DateTime'>
+    readonly updatedAt: FieldRef<"EventDefinition", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EventDefinition findUnique
+   */
+  export type EventDefinitionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which EventDefinition to fetch.
+     */
+    where: EventDefinitionWhereUniqueInput
+  }
+
+  /**
+   * EventDefinition findUniqueOrThrow
+   */
+  export type EventDefinitionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which EventDefinition to fetch.
+     */
+    where: EventDefinitionWhereUniqueInput
+  }
+
+  /**
+   * EventDefinition findFirst
+   */
+  export type EventDefinitionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which EventDefinition to fetch.
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventDefinitions to fetch.
+     */
+    orderBy?: EventDefinitionOrderByWithRelationInput | EventDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EventDefinitions.
+     */
+    cursor?: EventDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventDefinitions.
+     */
+    distinct?: EventDefinitionScalarFieldEnum | EventDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * EventDefinition findFirstOrThrow
+   */
+  export type EventDefinitionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which EventDefinition to fetch.
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventDefinitions to fetch.
+     */
+    orderBy?: EventDefinitionOrderByWithRelationInput | EventDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EventDefinitions.
+     */
+    cursor?: EventDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventDefinitions.
+     */
+    distinct?: EventDefinitionScalarFieldEnum | EventDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * EventDefinition findMany
+   */
+  export type EventDefinitionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which EventDefinitions to fetch.
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventDefinitions to fetch.
+     */
+    orderBy?: EventDefinitionOrderByWithRelationInput | EventDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EventDefinitions.
+     */
+    cursor?: EventDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventDefinitions.
+     */
+    skip?: number
+    distinct?: EventDefinitionScalarFieldEnum | EventDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * EventDefinition create
+   */
+  export type EventDefinitionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EventDefinition.
+     */
+    data: XOR<EventDefinitionCreateInput, EventDefinitionUncheckedCreateInput>
+  }
+
+  /**
+   * EventDefinition createMany
+   */
+  export type EventDefinitionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EventDefinitions.
+     */
+    data: EventDefinitionCreateManyInput | EventDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EventDefinition createManyAndReturn
+   */
+  export type EventDefinitionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * The data used to create many EventDefinitions.
+     */
+    data: EventDefinitionCreateManyInput | EventDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EventDefinition update
+   */
+  export type EventDefinitionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EventDefinition.
+     */
+    data: XOR<EventDefinitionUpdateInput, EventDefinitionUncheckedUpdateInput>
+    /**
+     * Choose, which EventDefinition to update.
+     */
+    where: EventDefinitionWhereUniqueInput
+  }
+
+  /**
+   * EventDefinition updateMany
+   */
+  export type EventDefinitionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EventDefinitions.
+     */
+    data: XOR<EventDefinitionUpdateManyMutationInput, EventDefinitionUncheckedUpdateManyInput>
+    /**
+     * Filter which EventDefinitions to update
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * Limit how many EventDefinitions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EventDefinition updateManyAndReturn
+   */
+  export type EventDefinitionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * The data used to update EventDefinitions.
+     */
+    data: XOR<EventDefinitionUpdateManyMutationInput, EventDefinitionUncheckedUpdateManyInput>
+    /**
+     * Filter which EventDefinitions to update
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * Limit how many EventDefinitions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EventDefinition upsert
+   */
+  export type EventDefinitionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EventDefinition to update in case it exists.
+     */
+    where: EventDefinitionWhereUniqueInput
+    /**
+     * In case the EventDefinition found by the `where` argument doesn't exist, create a new EventDefinition with this data.
+     */
+    create: XOR<EventDefinitionCreateInput, EventDefinitionUncheckedCreateInput>
+    /**
+     * In case the EventDefinition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EventDefinitionUpdateInput, EventDefinitionUncheckedUpdateInput>
+  }
+
+  /**
+   * EventDefinition delete
+   */
+  export type EventDefinitionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter which EventDefinition to delete.
+     */
+    where: EventDefinitionWhereUniqueInput
+  }
+
+  /**
+   * EventDefinition deleteMany
+   */
+  export type EventDefinitionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EventDefinitions to delete
+     */
+    where?: EventDefinitionWhereInput
+    /**
+     * Limit how many EventDefinitions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EventDefinition without action
+   */
+  export type EventDefinitionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventDefinition
+     */
+    select?: EventDefinitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventDefinition
+     */
+    omit?: EventDefinitionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventDefinitionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -13012,7 +14310,9 @@ export namespace Prisma {
     name: 'name',
     createdAt: 'createdAt',
     organizationId: 'organizationId',
-    ownerId: 'ownerId'
+    ownerId: 'ownerId',
+    primaryGoal: 'primaryGoal',
+    goalWindow: 'goalWindow'
   };
 
   export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
@@ -13092,6 +14392,21 @@ export namespace Prisma {
   };
 
   export type VerificationTokenScalarFieldEnum = (typeof VerificationTokenScalarFieldEnum)[keyof typeof VerificationTokenScalarFieldEnum]
+
+
+  export const EventDefinitionScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    name: 'name',
+    title: 'title',
+    category: 'category',
+    emoji: 'emoji',
+    isCritical: 'isCritical',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EventDefinitionScalarFieldEnum = (typeof EventDefinitionScalarFieldEnum)[keyof typeof EventDefinitionScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -13183,6 +14498,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -13211,16 +14540,9 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Int'
+   * Reference to a field of type 'Boolean'
    */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-  /**
-   * Reference to a field of type 'Int[]'
-   */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -13453,11 +14775,14 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Project"> | Date | string
     organizationId?: StringFilter<"Project"> | string
     ownerId?: StringFilter<"Project"> | string
+    primaryGoal?: StringNullableFilter<"Project"> | string | null
+    goalWindow?: IntFilter<"Project"> | number
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
     members?: ProjectMemberListRelationFilter
     invites?: InviteListRelationFilter
     events?: EventListRelationFilter
+    eventDefinitions?: EventDefinitionListRelationFilter
   }
 
   export type ProjectOrderByWithRelationInput = {
@@ -13466,11 +14791,14 @@ export namespace Prisma {
     createdAt?: SortOrder
     organizationId?: SortOrder
     ownerId?: SortOrder
+    primaryGoal?: SortOrderInput | SortOrder
+    goalWindow?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
     owner?: UserOrderByWithRelationInput
     members?: ProjectMemberOrderByRelationAggregateInput
     invites?: InviteOrderByRelationAggregateInput
     events?: EventOrderByRelationAggregateInput
+    eventDefinitions?: EventDefinitionOrderByRelationAggregateInput
   }
 
   export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -13482,11 +14810,14 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Project"> | Date | string
     organizationId?: StringFilter<"Project"> | string
     ownerId?: StringFilter<"Project"> | string
+    primaryGoal?: StringNullableFilter<"Project"> | string | null
+    goalWindow?: IntFilter<"Project"> | number
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
     members?: ProjectMemberListRelationFilter
     invites?: InviteListRelationFilter
     events?: EventListRelationFilter
+    eventDefinitions?: EventDefinitionListRelationFilter
   }, "id">
 
   export type ProjectOrderByWithAggregationInput = {
@@ -13495,9 +14826,13 @@ export namespace Prisma {
     createdAt?: SortOrder
     organizationId?: SortOrder
     ownerId?: SortOrder
+    primaryGoal?: SortOrderInput | SortOrder
+    goalWindow?: SortOrder
     _count?: ProjectCountOrderByAggregateInput
+    _avg?: ProjectAvgOrderByAggregateInput
     _max?: ProjectMaxOrderByAggregateInput
     _min?: ProjectMinOrderByAggregateInput
+    _sum?: ProjectSumOrderByAggregateInput
   }
 
   export type ProjectScalarWhereWithAggregatesInput = {
@@ -13509,6 +14844,8 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Project"> | Date | string
     organizationId?: StringWithAggregatesFilter<"Project"> | string
     ownerId?: StringWithAggregatesFilter<"Project"> | string
+    primaryGoal?: StringNullableWithAggregatesFilter<"Project"> | string | null
+    goalWindow?: IntWithAggregatesFilter<"Project"> | number
   }
 
   export type EventWhereInput = {
@@ -13899,6 +15236,82 @@ export namespace Prisma {
     expires?: DateTimeWithAggregatesFilter<"VerificationToken"> | Date | string
   }
 
+  export type EventDefinitionWhereInput = {
+    AND?: EventDefinitionWhereInput | EventDefinitionWhereInput[]
+    OR?: EventDefinitionWhereInput[]
+    NOT?: EventDefinitionWhereInput | EventDefinitionWhereInput[]
+    id?: StringFilter<"EventDefinition"> | string
+    projectId?: StringFilter<"EventDefinition"> | string
+    name?: StringFilter<"EventDefinition"> | string
+    title?: StringNullableFilter<"EventDefinition"> | string | null
+    category?: StringNullableFilter<"EventDefinition"> | string | null
+    emoji?: StringNullableFilter<"EventDefinition"> | string | null
+    isCritical?: BoolFilter<"EventDefinition"> | boolean
+    createdAt?: DateTimeFilter<"EventDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"EventDefinition"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }
+
+  export type EventDefinitionOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    title?: SortOrderInput | SortOrder
+    category?: SortOrderInput | SortOrder
+    emoji?: SortOrderInput | SortOrder
+    isCritical?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    project?: ProjectOrderByWithRelationInput
+  }
+
+  export type EventDefinitionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    projectId_name?: EventDefinitionProjectIdNameCompoundUniqueInput
+    AND?: EventDefinitionWhereInput | EventDefinitionWhereInput[]
+    OR?: EventDefinitionWhereInput[]
+    NOT?: EventDefinitionWhereInput | EventDefinitionWhereInput[]
+    projectId?: StringFilter<"EventDefinition"> | string
+    name?: StringFilter<"EventDefinition"> | string
+    title?: StringNullableFilter<"EventDefinition"> | string | null
+    category?: StringNullableFilter<"EventDefinition"> | string | null
+    emoji?: StringNullableFilter<"EventDefinition"> | string | null
+    isCritical?: BoolFilter<"EventDefinition"> | boolean
+    createdAt?: DateTimeFilter<"EventDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"EventDefinition"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }, "id" | "projectId_name">
+
+  export type EventDefinitionOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    title?: SortOrderInput | SortOrder
+    category?: SortOrderInput | SortOrder
+    emoji?: SortOrderInput | SortOrder
+    isCritical?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EventDefinitionCountOrderByAggregateInput
+    _max?: EventDefinitionMaxOrderByAggregateInput
+    _min?: EventDefinitionMinOrderByAggregateInput
+  }
+
+  export type EventDefinitionScalarWhereWithAggregatesInput = {
+    AND?: EventDefinitionScalarWhereWithAggregatesInput | EventDefinitionScalarWhereWithAggregatesInput[]
+    OR?: EventDefinitionScalarWhereWithAggregatesInput[]
+    NOT?: EventDefinitionScalarWhereWithAggregatesInput | EventDefinitionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EventDefinition"> | string
+    projectId?: StringWithAggregatesFilter<"EventDefinition"> | string
+    name?: StringWithAggregatesFilter<"EventDefinition"> | string
+    title?: StringNullableWithAggregatesFilter<"EventDefinition"> | string | null
+    category?: StringNullableWithAggregatesFilter<"EventDefinition"> | string | null
+    emoji?: StringNullableWithAggregatesFilter<"EventDefinition"> | string | null
+    isCritical?: BoolWithAggregatesFilter<"EventDefinition"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"EventDefinition"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EventDefinition"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -14118,11 +15531,14 @@ export namespace Prisma {
     id?: string
     name: string
     createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
     organization: OrganizationCreateNestedOneWithoutProjectsInput
     owner: UserCreateNestedOneWithoutOwnedProjectsInput
     members?: ProjectMemberCreateNestedManyWithoutProjectInput
     invites?: InviteCreateNestedManyWithoutProjectInput
     events?: EventCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateInput = {
@@ -14131,20 +15547,26 @@ export namespace Prisma {
     createdAt?: Date | string
     organizationId: string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
     members?: ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
     invites?: InviteUncheckedCreateNestedManyWithoutProjectInput
     events?: EventUncheckedCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     organization?: OrganizationUpdateOneRequiredWithoutProjectsNestedInput
     owner?: UserUpdateOneRequiredWithoutOwnedProjectsNestedInput
     members?: ProjectMemberUpdateManyWithoutProjectNestedInput
     invites?: InviteUpdateManyWithoutProjectNestedInput
     events?: EventUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateInput = {
@@ -14153,9 +15575,12 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     members?: ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
     invites?: InviteUncheckedUpdateManyWithoutProjectNestedInput
     events?: EventUncheckedUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateManyInput = {
@@ -14164,12 +15589,16 @@ export namespace Prisma {
     createdAt?: Date | string
     organizationId: string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
   }
 
   export type ProjectUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
   }
 
   export type ProjectUncheckedUpdateManyInput = {
@@ -14178,6 +15607,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
   }
 
   export type EventCreateInput = {
@@ -14579,6 +16010,89 @@ export namespace Prisma {
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EventDefinitionCreateInput = {
+    id?: string
+    name: string
+    title?: string | null
+    category?: string | null
+    emoji?: string | null
+    isCritical?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    project: ProjectCreateNestedOneWithoutEventDefinitionsInput
+  }
+
+  export type EventDefinitionUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    name: string
+    title?: string | null
+    category?: string | null
+    emoji?: string | null
+    isCritical?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventDefinitionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutEventDefinitionsNestedInput
+  }
+
+  export type EventDefinitionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventDefinitionCreateManyInput = {
+    id?: string
+    projectId: string
+    name: string
+    title?: string | null
+    category?: string | null
+    emoji?: string | null
+    isCritical?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventDefinitionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventDefinitionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -14880,13 +16394,34 @@ export namespace Prisma {
     _max?: NestedEnumOrgRoleFilter<$PrismaModel>
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
   export type EventListRelationFilter = {
     every?: EventWhereInput
     some?: EventWhereInput
     none?: EventWhereInput
   }
 
+  export type EventDefinitionListRelationFilter = {
+    every?: EventDefinitionWhereInput
+    some?: EventDefinitionWhereInput
+    none?: EventDefinitionWhereInput
+  }
+
   export type EventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EventDefinitionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14896,6 +16431,12 @@ export namespace Prisma {
     createdAt?: SortOrder
     organizationId?: SortOrder
     ownerId?: SortOrder
+    primaryGoal?: SortOrder
+    goalWindow?: SortOrder
+  }
+
+  export type ProjectAvgOrderByAggregateInput = {
+    goalWindow?: SortOrder
   }
 
   export type ProjectMaxOrderByAggregateInput = {
@@ -14904,6 +16445,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     organizationId?: SortOrder
     ownerId?: SortOrder
+    primaryGoal?: SortOrder
+    goalWindow?: SortOrder
   }
 
   export type ProjectMinOrderByAggregateInput = {
@@ -14912,6 +16455,28 @@ export namespace Prisma {
     createdAt?: SortOrder
     organizationId?: SortOrder
     ownerId?: SortOrder
+    primaryGoal?: SortOrder
+    goalWindow?: SortOrder
+  }
+
+  export type ProjectSumOrderByAggregateInput = {
+    goalWindow?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
   export type JsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -15208,6 +16773,60 @@ export namespace Prisma {
     identifier?: SortOrder
     token?: SortOrder
     expires?: SortOrder
+  }
+
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type EventDefinitionProjectIdNameCompoundUniqueInput = {
+    projectId: string
+    name: string
+  }
+
+  export type EventDefinitionCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    category?: SortOrder
+    emoji?: SortOrder
+    isCritical?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EventDefinitionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    category?: SortOrder
+    emoji?: SortOrder
+    isCritical?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EventDefinitionMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    category?: SortOrder
+    emoji?: SortOrder
+    isCritical?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type MembershipCreateNestedManyWithoutUserInput = {
@@ -15683,6 +17302,13 @@ export namespace Prisma {
     connect?: EventWhereUniqueInput | EventWhereUniqueInput[]
   }
 
+  export type EventDefinitionCreateNestedManyWithoutProjectInput = {
+    create?: XOR<EventDefinitionCreateWithoutProjectInput, EventDefinitionUncheckedCreateWithoutProjectInput> | EventDefinitionCreateWithoutProjectInput[] | EventDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EventDefinitionCreateOrConnectWithoutProjectInput | EventDefinitionCreateOrConnectWithoutProjectInput[]
+    createMany?: EventDefinitionCreateManyProjectInputEnvelope
+    connect?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+  }
+
   export type ProjectMemberUncheckedCreateNestedManyWithoutProjectInput = {
     create?: XOR<ProjectMemberCreateWithoutProjectInput, ProjectMemberUncheckedCreateWithoutProjectInput> | ProjectMemberCreateWithoutProjectInput[] | ProjectMemberUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: ProjectMemberCreateOrConnectWithoutProjectInput | ProjectMemberCreateOrConnectWithoutProjectInput[]
@@ -15702,6 +17328,21 @@ export namespace Prisma {
     connectOrCreate?: EventCreateOrConnectWithoutProjectInput | EventCreateOrConnectWithoutProjectInput[]
     createMany?: EventCreateManyProjectInputEnvelope
     connect?: EventWhereUniqueInput | EventWhereUniqueInput[]
+  }
+
+  export type EventDefinitionUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<EventDefinitionCreateWithoutProjectInput, EventDefinitionUncheckedCreateWithoutProjectInput> | EventDefinitionCreateWithoutProjectInput[] | EventDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EventDefinitionCreateOrConnectWithoutProjectInput | EventDefinitionCreateOrConnectWithoutProjectInput[]
+    createMany?: EventDefinitionCreateManyProjectInputEnvelope
+    connect?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type OrganizationUpdateOneRequiredWithoutProjectsNestedInput = {
@@ -15762,6 +17403,20 @@ export namespace Prisma {
     deleteMany?: EventScalarWhereInput | EventScalarWhereInput[]
   }
 
+  export type EventDefinitionUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<EventDefinitionCreateWithoutProjectInput, EventDefinitionUncheckedCreateWithoutProjectInput> | EventDefinitionCreateWithoutProjectInput[] | EventDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EventDefinitionCreateOrConnectWithoutProjectInput | EventDefinitionCreateOrConnectWithoutProjectInput[]
+    upsert?: EventDefinitionUpsertWithWhereUniqueWithoutProjectInput | EventDefinitionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: EventDefinitionCreateManyProjectInputEnvelope
+    set?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    disconnect?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    delete?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    connect?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    update?: EventDefinitionUpdateWithWhereUniqueWithoutProjectInput | EventDefinitionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: EventDefinitionUpdateManyWithWhereWithoutProjectInput | EventDefinitionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: EventDefinitionScalarWhereInput | EventDefinitionScalarWhereInput[]
+  }
+
   export type ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput = {
     create?: XOR<ProjectMemberCreateWithoutProjectInput, ProjectMemberUncheckedCreateWithoutProjectInput> | ProjectMemberCreateWithoutProjectInput[] | ProjectMemberUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: ProjectMemberCreateOrConnectWithoutProjectInput | ProjectMemberCreateOrConnectWithoutProjectInput[]
@@ -15802,6 +17457,20 @@ export namespace Prisma {
     update?: EventUpdateWithWhereUniqueWithoutProjectInput | EventUpdateWithWhereUniqueWithoutProjectInput[]
     updateMany?: EventUpdateManyWithWhereWithoutProjectInput | EventUpdateManyWithWhereWithoutProjectInput[]
     deleteMany?: EventScalarWhereInput | EventScalarWhereInput[]
+  }
+
+  export type EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<EventDefinitionCreateWithoutProjectInput, EventDefinitionUncheckedCreateWithoutProjectInput> | EventDefinitionCreateWithoutProjectInput[] | EventDefinitionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EventDefinitionCreateOrConnectWithoutProjectInput | EventDefinitionCreateOrConnectWithoutProjectInput[]
+    upsert?: EventDefinitionUpsertWithWhereUniqueWithoutProjectInput | EventDefinitionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: EventDefinitionCreateManyProjectInputEnvelope
+    set?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    disconnect?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    delete?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    connect?: EventDefinitionWhereUniqueInput | EventDefinitionWhereUniqueInput[]
+    update?: EventDefinitionUpdateWithWhereUniqueWithoutProjectInput | EventDefinitionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: EventDefinitionUpdateManyWithWhereWithoutProjectInput | EventDefinitionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: EventDefinitionScalarWhereInput | EventDefinitionScalarWhereInput[]
   }
 
   export type ProjectCreateNestedOneWithoutEventsInput = {
@@ -15914,6 +17583,24 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutSessionsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSessionsInput, UserUpdateWithoutSessionsInput>, UserUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type ProjectCreateNestedOneWithoutEventDefinitionsInput = {
+    create?: XOR<ProjectCreateWithoutEventDefinitionsInput, ProjectUncheckedCreateWithoutEventDefinitionsInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutEventDefinitionsInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
+  export type ProjectUpdateOneRequiredWithoutEventDefinitionsNestedInput = {
+    create?: XOR<ProjectCreateWithoutEventDefinitionsInput, ProjectUncheckedCreateWithoutEventDefinitionsInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutEventDefinitionsInput
+    upsert?: ProjectUpsertWithoutEventDefinitionsInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutEventDefinitionsInput, ProjectUpdateWithoutEventDefinitionsInput>, ProjectUncheckedUpdateWithoutEventDefinitionsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -16066,6 +17753,33 @@ export namespace Prisma {
     _min?: NestedEnumOrgRoleFilter<$PrismaModel>
     _max?: NestedEnumOrgRoleFilter<$PrismaModel>
   }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -16132,6 +17846,19 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type MembershipCreateWithoutUserInput = {
@@ -16214,10 +17941,13 @@ export namespace Prisma {
     id?: string
     name: string
     createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
     organization: OrganizationCreateNestedOneWithoutProjectsInput
     members?: ProjectMemberCreateNestedManyWithoutProjectInput
     invites?: InviteCreateNestedManyWithoutProjectInput
     events?: EventCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutOwnerInput = {
@@ -16225,9 +17955,12 @@ export namespace Prisma {
     name: string
     createdAt?: Date | string
     organizationId: string
+    primaryGoal?: string | null
+    goalWindow?: number
     members?: ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
     invites?: InviteUncheckedCreateNestedManyWithoutProjectInput
     events?: EventUncheckedCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutOwnerInput = {
@@ -16405,6 +18138,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Project"> | Date | string
     organizationId?: StringFilter<"Project"> | string
     ownerId?: StringFilter<"Project"> | string
+    primaryGoal?: StringNullableFilter<"Project"> | string | null
+    goalWindow?: IntFilter<"Project"> | number
   }
 
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
@@ -16532,10 +18267,13 @@ export namespace Prisma {
     id?: string
     name: string
     createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
     owner: UserCreateNestedOneWithoutOwnedProjectsInput
     members?: ProjectMemberCreateNestedManyWithoutProjectInput
     invites?: InviteCreateNestedManyWithoutProjectInput
     events?: EventCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutOrganizationInput = {
@@ -16543,9 +18281,12 @@ export namespace Prisma {
     name: string
     createdAt?: Date | string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
     members?: ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
     invites?: InviteUncheckedCreateNestedManyWithoutProjectInput
     events?: EventUncheckedCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutOrganizationInput = {
@@ -16969,6 +18710,38 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type EventDefinitionCreateWithoutProjectInput = {
+    id?: string
+    name: string
+    title?: string | null
+    category?: string | null
+    emoji?: string | null
+    isCritical?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventDefinitionUncheckedCreateWithoutProjectInput = {
+    id?: string
+    name: string
+    title?: string | null
+    category?: string | null
+    emoji?: string | null
+    isCritical?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventDefinitionCreateOrConnectWithoutProjectInput = {
+    where: EventDefinitionWhereUniqueInput
+    create: XOR<EventDefinitionCreateWithoutProjectInput, EventDefinitionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type EventDefinitionCreateManyProjectInputEnvelope = {
+    data: EventDefinitionCreateManyProjectInput | EventDefinitionCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrganizationUpsertWithoutProjectsInput = {
     update: XOR<OrganizationUpdateWithoutProjectsInput, OrganizationUncheckedUpdateWithoutProjectsInput>
     create: XOR<OrganizationCreateWithoutProjectsInput, OrganizationUncheckedCreateWithoutProjectsInput>
@@ -17103,14 +18876,48 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Event"> | Date | string
   }
 
+  export type EventDefinitionUpsertWithWhereUniqueWithoutProjectInput = {
+    where: EventDefinitionWhereUniqueInput
+    update: XOR<EventDefinitionUpdateWithoutProjectInput, EventDefinitionUncheckedUpdateWithoutProjectInput>
+    create: XOR<EventDefinitionCreateWithoutProjectInput, EventDefinitionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type EventDefinitionUpdateWithWhereUniqueWithoutProjectInput = {
+    where: EventDefinitionWhereUniqueInput
+    data: XOR<EventDefinitionUpdateWithoutProjectInput, EventDefinitionUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type EventDefinitionUpdateManyWithWhereWithoutProjectInput = {
+    where: EventDefinitionScalarWhereInput
+    data: XOR<EventDefinitionUpdateManyMutationInput, EventDefinitionUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type EventDefinitionScalarWhereInput = {
+    AND?: EventDefinitionScalarWhereInput | EventDefinitionScalarWhereInput[]
+    OR?: EventDefinitionScalarWhereInput[]
+    NOT?: EventDefinitionScalarWhereInput | EventDefinitionScalarWhereInput[]
+    id?: StringFilter<"EventDefinition"> | string
+    projectId?: StringFilter<"EventDefinition"> | string
+    name?: StringFilter<"EventDefinition"> | string
+    title?: StringNullableFilter<"EventDefinition"> | string | null
+    category?: StringNullableFilter<"EventDefinition"> | string | null
+    emoji?: StringNullableFilter<"EventDefinition"> | string | null
+    isCritical?: BoolFilter<"EventDefinition"> | boolean
+    createdAt?: DateTimeFilter<"EventDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"EventDefinition"> | Date | string
+  }
+
   export type ProjectCreateWithoutEventsInput = {
     id?: string
     name: string
     createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
     organization: OrganizationCreateNestedOneWithoutProjectsInput
     owner: UserCreateNestedOneWithoutOwnedProjectsInput
     members?: ProjectMemberCreateNestedManyWithoutProjectInput
     invites?: InviteCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutEventsInput = {
@@ -17119,8 +18926,11 @@ export namespace Prisma {
     createdAt?: Date | string
     organizationId: string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
     members?: ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
     invites?: InviteUncheckedCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutEventsInput = {
@@ -17143,10 +18953,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     organization?: OrganizationUpdateOneRequiredWithoutProjectsNestedInput
     owner?: UserUpdateOneRequiredWithoutOwnedProjectsNestedInput
     members?: ProjectMemberUpdateManyWithoutProjectNestedInput
     invites?: InviteUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutEventsInput = {
@@ -17155,8 +18968,11 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     members?: ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
     invites?: InviteUncheckedUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type UserCreateWithoutProjectMembershipsInput = {
@@ -17200,10 +19016,13 @@ export namespace Prisma {
     id?: string
     name: string
     createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
     organization: OrganizationCreateNestedOneWithoutProjectsInput
     owner: UserCreateNestedOneWithoutOwnedProjectsInput
     invites?: InviteCreateNestedManyWithoutProjectInput
     events?: EventCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutMembersInput = {
@@ -17212,8 +19031,11 @@ export namespace Prisma {
     createdAt?: Date | string
     organizationId: string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
     invites?: InviteUncheckedCreateNestedManyWithoutProjectInput
     events?: EventUncheckedCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutMembersInput = {
@@ -17279,10 +19101,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     organization?: OrganizationUpdateOneRequiredWithoutProjectsNestedInput
     owner?: UserUpdateOneRequiredWithoutOwnedProjectsNestedInput
     invites?: InviteUpdateManyWithoutProjectNestedInput
     events?: EventUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutMembersInput = {
@@ -17291,8 +19116,11 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     invites?: InviteUncheckedUpdateManyWithoutProjectNestedInput
     events?: EventUncheckedUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type OrganizationCreateWithoutInvitesInput = {
@@ -17322,10 +19150,13 @@ export namespace Prisma {
     id?: string
     name: string
     createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
     organization: OrganizationCreateNestedOneWithoutProjectsInput
     owner: UserCreateNestedOneWithoutOwnedProjectsInput
     members?: ProjectMemberCreateNestedManyWithoutProjectInput
     events?: EventCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutInvitesInput = {
@@ -17334,8 +19165,11 @@ export namespace Prisma {
     createdAt?: Date | string
     organizationId: string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
     members?: ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
     events?: EventUncheckedCreateNestedManyWithoutProjectInput
+    eventDefinitions?: EventDefinitionUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutInvitesInput = {
@@ -17387,10 +19221,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     organization?: OrganizationUpdateOneRequiredWithoutProjectsNestedInput
     owner?: UserUpdateOneRequiredWithoutOwnedProjectsNestedInput
     members?: ProjectMemberUpdateManyWithoutProjectNestedInput
     events?: EventUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutInvitesInput = {
@@ -17399,8 +19236,11 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     members?: ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
     events?: EventUncheckedUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type UserCreateWithoutAccountsInput = {
@@ -17563,6 +19403,74 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
   }
 
+  export type ProjectCreateWithoutEventDefinitionsInput = {
+    id?: string
+    name: string
+    createdAt?: Date | string
+    primaryGoal?: string | null
+    goalWindow?: number
+    organization: OrganizationCreateNestedOneWithoutProjectsInput
+    owner: UserCreateNestedOneWithoutOwnedProjectsInput
+    members?: ProjectMemberCreateNestedManyWithoutProjectInput
+    invites?: InviteCreateNestedManyWithoutProjectInput
+    events?: EventCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutEventDefinitionsInput = {
+    id?: string
+    name: string
+    createdAt?: Date | string
+    organizationId: string
+    ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
+    members?: ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+    invites?: InviteUncheckedCreateNestedManyWithoutProjectInput
+    events?: EventUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutEventDefinitionsInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutEventDefinitionsInput, ProjectUncheckedCreateWithoutEventDefinitionsInput>
+  }
+
+  export type ProjectUpsertWithoutEventDefinitionsInput = {
+    update: XOR<ProjectUpdateWithoutEventDefinitionsInput, ProjectUncheckedUpdateWithoutEventDefinitionsInput>
+    create: XOR<ProjectCreateWithoutEventDefinitionsInput, ProjectUncheckedCreateWithoutEventDefinitionsInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutEventDefinitionsInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutEventDefinitionsInput, ProjectUncheckedUpdateWithoutEventDefinitionsInput>
+  }
+
+  export type ProjectUpdateWithoutEventDefinitionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
+    organization?: OrganizationUpdateOneRequiredWithoutProjectsNestedInput
+    owner?: UserUpdateOneRequiredWithoutOwnedProjectsNestedInput
+    members?: ProjectMemberUpdateManyWithoutProjectNestedInput
+    invites?: InviteUpdateManyWithoutProjectNestedInput
+    events?: EventUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutEventDefinitionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
+    members?: ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+    invites?: InviteUncheckedUpdateManyWithoutProjectNestedInput
+    events?: EventUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
   export type MembershipCreateManyUserInput = {
     id?: string
     role: $Enums.OrgRole
@@ -17588,6 +19496,8 @@ export namespace Prisma {
     name: string
     createdAt?: Date | string
     organizationId: string
+    primaryGoal?: string | null
+    goalWindow?: number
   }
 
   export type AccountCreateManyUserInput = {
@@ -17680,10 +19590,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     organization?: OrganizationUpdateOneRequiredWithoutProjectsNestedInput
     members?: ProjectMemberUpdateManyWithoutProjectNestedInput
     invites?: InviteUpdateManyWithoutProjectNestedInput
     events?: EventUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutOwnerInput = {
@@ -17691,9 +19604,12 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     members?: ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
     invites?: InviteUncheckedUpdateManyWithoutProjectNestedInput
     events?: EventUncheckedUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateManyWithoutOwnerInput = {
@@ -17701,6 +19617,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -17775,6 +19693,8 @@ export namespace Prisma {
     name: string
     createdAt?: Date | string
     ownerId: string
+    primaryGoal?: string | null
+    goalWindow?: number
   }
 
   export type InviteCreateManyOrganizationInput = {
@@ -17812,10 +19732,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     owner?: UserUpdateOneRequiredWithoutOwnedProjectsNestedInput
     members?: ProjectMemberUpdateManyWithoutProjectNestedInput
     invites?: InviteUpdateManyWithoutProjectNestedInput
     events?: EventUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutOrganizationInput = {
@@ -17823,9 +19746,12 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
     members?: ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
     invites?: InviteUncheckedUpdateManyWithoutProjectNestedInput
     events?: EventUncheckedUpdateManyWithoutProjectNestedInput
+    eventDefinitions?: EventDefinitionUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateManyWithoutOrganizationInput = {
@@ -17833,6 +19759,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownerId?: StringFieldUpdateOperationsInput | string
+    primaryGoal?: NullableStringFieldUpdateOperationsInput | string | null
+    goalWindow?: IntFieldUpdateOperationsInput | number
   }
 
   export type InviteUpdateWithoutOrganizationInput = {
@@ -17890,6 +19818,17 @@ export namespace Prisma {
     properties?: NullableJsonNullValueInput | InputJsonValue
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+  }
+
+  export type EventDefinitionCreateManyProjectInput = {
+    id?: string
+    name: string
+    title?: string | null
+    category?: string | null
+    emoji?: string | null
+    isCritical?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ProjectMemberUpdateWithoutProjectInput = {
@@ -17971,6 +19910,39 @@ export namespace Prisma {
     properties?: NullableJsonNullValueInput | InputJsonValue
     metadata?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventDefinitionUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventDefinitionUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventDefinitionUncheckedUpdateManyWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    emoji?: NullableStringFieldUpdateOperationsInput | string | null
+    isCritical?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

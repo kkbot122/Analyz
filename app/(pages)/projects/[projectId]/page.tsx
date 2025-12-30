@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import {
-  ArrowLeft,
   ChevronRight,
   Shield,
   Copy,
@@ -155,7 +154,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
         showSettings={showOrgSettings}
       />
 
-      <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto" suppressHydrationWarning>
+      <main className="flex-1 px-4 lg:px-8 py-8 overflow-y-auto" suppressHydrationWarning={true}>
         {/* Navigation Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-500">
           <Link href="/dashboard" className="hover:text-black transition-colors">Dashboard</Link>

@@ -3,22 +3,24 @@
 import { useState } from "react";
 import { Settings, UserPlus } from "lucide-react";
 import { ProjectInviteModal } from "./project-invite-modal";
+import { ProjectSettingsModal } from "./project-settings-modal"; 
 
-export function ProjectHeader({ 
-  projectName, 
-  userRole, 
+export function ProjectHeader({
+  projectName,
+  userRole,
   projectId,
   canInvite,
-  orgId 
-}: { 
-  projectName: string; 
-  userRole: string; 
+  orgId,
+}: {
+  projectName: string;
+  userRole: string;
   projectId: string;
   canInvite: boolean;
   orgId: string;
 }) {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -29,9 +31,8 @@ export function ProjectHeader({
       </div>
 
       <div className="flex items-center gap-2">
-
         {canInvite && (
-          <button 
+          <button
             onClick={() => setIsInviteOpen(true)}
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-[#d9623b] hover:bg-[#ed6c42] rounded-lg transition-colors"
           >
@@ -40,16 +41,26 @@ export function ProjectHeader({
           </button>
         )}
 
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-black transition-colors">
+        {/* Update Settings Button */}
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-black transition-colors"
+        >
           <Settings className="w-5 h-5" />
         </button>
       </div>
 
-      <ProjectInviteModal 
-        isOpen={isInviteOpen} 
-        onClose={() => setIsInviteOpen(false)} 
+      <ProjectInviteModal
+        isOpen={isInviteOpen}
+        onClose={() => setIsInviteOpen(false)}
         projectId={projectId}
         organizationId={orgId}
+      />
+
+      <ProjectSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        projectId={projectId}
       />
     </div>
   );

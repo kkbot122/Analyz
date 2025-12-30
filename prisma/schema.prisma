@@ -80,6 +80,10 @@ model Project {
   members ProjectMember[]
   invites Invite[]
   events  Event[]
+
+  primaryGoal      String? // E.g. "checkout_completed"
+  goalWindow       Int               @default(30) // E.g. 30 days
+  eventDefinitions EventDefinition[]
 }
 
 model Event {
@@ -168,4 +172,27 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// ✅ NEW MODEL: Stores metadata (aliases/categories) for your events
+model EventDefinition {
+  id String @id @default(cuid())
+
+  // Link to Project
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Core Fields
+  name       String // The RAW event name (must match what is sent in Event.eventName)
+  title      String? // The Human-Readable name (e.g. "Clicked Signup")
+  category   String? // "acquisition", "activation", "retention"
+  emoji      String? // Optional: for visual polish
+  isCritical Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Constraint: You can't define the same event name twice for the same project
+  @@unique([projectId, name])
+  @@index([projectId])
 }

@@ -283,7 +283,10 @@ export default async function Dashboard() {
                 Projects Overview
               </h2>
               <button className="text-sm font-medium text-gray-500 hover:text-black transition-colors flex items-center gap-1">
-                All Departments <ArrowUpRight className="w-4 h-4" />
+                <Link href="/projects" className="">
+                  All Projects
+                </Link>
+                <ArrowUpRight className="w-4 h-4" />
               </button>
             </div>
 
