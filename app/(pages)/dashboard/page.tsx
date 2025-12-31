@@ -17,30 +17,62 @@ import {
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-// ✅ 1. Import Prisma Enums for Type Casting
 import { OrgRole, ProjectRole } from "@prisma/client";
+// ✅ NEW IMPORTS
+import { subDays } from "date-fns";
+import { DashboardAnalytics } from "@/components/analytics/dashboard-analytics";
 
-// Direct database fetch functions
+// --- HELPER 1: FETCH ANALYTICS ---
+async function getAnalyticsOverview(projectIds: string[]) {
+  if (projectIds.length === 0) return {};
+
+  const thirtyDaysAgo = subDays(new Date(), 30);
+
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        projectId: { in: projectIds },
+        eventName: "page_view",
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      select: { projectId: true, createdAt: true },
+    });
+
+    const stats: Record<string, Record<string, number>> = {};
+
+    events.forEach((event) => {
+      const day = event.createdAt.toISOString().slice(0, 10);
+      const pid = event.projectId;
+      if (!stats[pid]) stats[pid] = {};
+      stats[pid][day] = (stats[pid][day] || 0) + 1;
+    });
+
+    const formattedStats: Record<string, { date: string; count: number }[]> =
+      {};
+    Object.keys(stats).forEach((pid) => {
+      formattedStats[pid] = Object.entries(stats[pid]).map(([date, count]) => ({
+        date,
+        count,
+      }));
+    });
+
+    return formattedStats;
+  } catch (error) {
+    console.error("Analytics fetch error:", error);
+    return {};
+  }
+}
+
+// --- HELPER 2: FETCH TEAM ---
 async function getTeamMembers(orgId: string) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return [];
-    }
+    if (!session?.user?.email) return [];
 
     const memberships = await prisma.membership.findMany({
-      where: {
-        organizationId: orgId,
-      },
+      where: { organizationId: orgId },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
+        user: { select: { id: true, name: true, email: true, image: true } },
       },
       orderBy: [{ role: "asc" }, { createdAt: "asc" }],
     });
@@ -59,35 +91,26 @@ async function getTeamMembers(orgId: string) {
   }
 }
 
+// --- HELPER 3: FETCH PROJECT MEMBERS ---
 async function getAllProjectMembers(orgId: string) {
   try {
     const projectsWithMembers = await prisma.project.findMany({
-      where: {
-        organizationId: orgId,
-      },
+      where: { organizationId: orgId },
       include: {
         members: {
           include: {
             user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
-              },
+              select: { id: true, name: true, email: true, image: true },
             },
           },
           orderBy: { createdAt: "asc" },
           take: 4,
         },
-        _count: {
-          select: { members: true },
-        },
+        _count: { select: { members: true } },
       },
     });
 
     const membersMap: Record<string, any> = {};
-
     projectsWithMembers.forEach((project) => {
       membersMap[project.id] = {
         projectId: project.id,
@@ -101,7 +124,6 @@ async function getAllProjectMembers(orgId: string) {
         totalMembers: project._count.members,
       };
     });
-
     return membersMap;
   } catch (error) {
     console.error("Error fetching project members:", error);
@@ -109,7 +131,7 @@ async function getAllProjectMembers(orgId: string) {
   }
 }
 
-// Project Card Component
+// --- COMPONENT: PROJECT CARD ---
 function ProjectCard({
   project,
   membersData,
@@ -119,24 +141,19 @@ function ProjectCard({
 }) {
   const cardClass =
     "bg-white rounded-[24px] p-6 shadow-sm border border-gray-100/50 hover:shadow-md transition-shadow duration-300";
-
   const members = membersData?.members || [];
   const totalMembers = membersData?.totalMembers || 0;
   const visibleMembers = members.slice(0, 4);
   const hasMoreMembers = totalMembers > 4;
   const remainingCount = totalMembers > 4 ? totalMembers - 4 : 0;
 
-  // Safely get the year from createdAt
   const getYearFromDate = (dateString: string | Date | undefined): string => {
     if (!dateString) return new Date().getFullYear().toString();
-
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return new Date().getFullYear().toString();
-      }
+      if (isNaN(date.getTime())) return new Date().getFullYear().toString();
       return date.getFullYear().toString();
-    } catch (error) {
+    } catch {
       return new Date().getFullYear().toString();
     }
   };
@@ -167,7 +184,6 @@ function ProjectCard({
           {totalMembers} member{totalMembers !== 1 ? "s" : ""}
         </p>
       </div>
-
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
         <div className="flex -space-x-2">
           {visibleMembers.length > 0 ? (
@@ -195,7 +211,6 @@ function ProjectCard({
               )}
             </>
           ) : (
-            // Fallback if no members
             <div className="flex items-center gap-1">
               <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">
                 <User className="w-4 h-4" />
@@ -215,25 +230,25 @@ function ProjectCard({
   );
 }
 
+// ------------------------------------------------------------------
+// MAIN PAGE
+// ------------------------------------------------------------------
 export default async function Dashboard() {
   let org = await getActiveOrg();
   const session = await getServerSession(authOptions);
 
-  // ✅ 2. FIXED FALLBACK LOGIC
-  // Explicitly checking for existence of organizations array
+  // --- FALLBACK 1: Session Cache ---
   if (
     !org &&
     session?.user?.organizations &&
     session.user.organizations.length > 0
   ) {
     const firstOrg = session.user.organizations[0];
-
-    // Construct a minimal org object compatible with your view
-    // ✅ 3. CAST TYPES using 'as OrgRole' and 'as ProjectRole'
     org = {
       id: firstOrg.id,
       name: firstOrg.name,
       role: firstOrg.role as OrgRole,
+      // Note: session cache is usually already filtered in auth.ts
       projects: firstOrg.projects.map((p) => ({
         id: p.id,
         name: p.name,
@@ -242,6 +257,7 @@ export default async function Dashboard() {
     };
   }
 
+  // --- FALLBACK 2: Database Check ---
   if (!org && session?.user?.id) {
     const dbMembership = await prisma.membership.findFirst({
       where: { userId: session.user.id },
@@ -250,7 +266,7 @@ export default async function Dashboard() {
           include: {
             projects: {
               include: {
-                // Include members so we can find OUR role in the project
+                // Include members so we can find OUR role
                 members: { where: { userId: session.user.id } },
               },
             },
@@ -260,14 +276,20 @@ export default async function Dashboard() {
     });
 
     if (dbMembership) {
+      const isOrgOwner = dbMembership.role === "ORG_OWNER";
+
+      // ✅ SECURITY FILTER: Only show projects I am in (or all if Owner)
+      const accessibleProjects = dbMembership.organization.projects.filter(
+        (p) => isOrgOwner || p.members.length > 0
+      );
+
       org = {
         id: dbMembership.organization.id,
         name: dbMembership.organization.name,
         role: dbMembership.role,
-        projects: dbMembership.organization.projects.map((p) => ({
+        projects: accessibleProjects.map((p) => ({
           id: p.id,
           name: p.name,
-          // If we have a membership record for this project, use it. Otherwise default to MEMBER.
           role: (p.members[0]?.role || "MEMBER") as ProjectRole,
         })),
       };
@@ -276,27 +298,28 @@ export default async function Dashboard() {
 
   if (!org) redirect("/onboarding/create-org");
 
+  // ✅ PREPARE ANALYTICS DATA
+  const allAccessibleProjects = org.projects || [];
+  const accessibleProjectIds = allAccessibleProjects.map((p) => p.id);
+
   // Fetch ALL data in parallel
-  const [teamMembers, projectMembersMap] = await Promise.all([
+  const [teamMembers, projectMembersMap, analyticsData] = await Promise.all([
     getTeamMembers(org.id),
     getAllProjectMembers(org.id),
+    getAnalyticsOverview(accessibleProjectIds), // ✅ Fetches real stats
   ]);
 
-  const visibleTeamMembers = teamMembers.slice(0, 5);
-  const hasMoreTeamMembers = teamMembers.length > 5;
-  const remainingTeamCount = teamMembers.length - 5;
+  // ✅ LIMITS: 3 Team Members, 2 Projects
+  const visibleTeamMembers = teamMembers.slice(0, 3);
+  const hasMoreTeamMembers = teamMembers.length > 3;
+  const remainingTeamCount = teamMembers.length - 3;
+  const visibleProjects = org.projects?.slice(0, 2) || []; // Show only top 2
 
   const showNewProjectBtn = canCreateProject(org.role);
   const showOrgSettings = canManageOrganization(org.role);
-
-  // The specific "soft card" style from the image
   const cardClass =
     "bg-white rounded-[24px] p-6 shadow-sm border border-gray-100/50 hover:shadow-md transition-shadow duration-300";
 
-  // Get full project objects from active-org
-  const visibleProjects = org.projects?.slice(0, 4) || [];
-
-  // Helper to get role display name
   function getRoleDisplayName(role: string): string {
     switch (role) {
       case "ORG_OWNER":
@@ -312,11 +335,9 @@ export default async function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#f0eeef] text-black flex font-sans selection:bg-black selection:text-white">
-      {/* Sidebar is fixed height, handles its own sticky state */}
       <Sidebar currentOrgId={org.id} showSettings={showOrgSettings} />
 
       <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-        {/* Mobile Header */}
         <div className="lg:hidden flex justify-between items-center mb-6">
           <Link href="/dashboard" className="font-black text-xl">
             Analyz
@@ -332,24 +353,20 @@ export default async function Dashboard() {
           canInvite={canManageOrganization(org.role)}
         />
 
-        {/* BENTO GRID LAYOUT */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* LEFT COLUMN (Main Content) - Spans 8 cols on large screens */}
           <div className="xl:col-span-8 flex flex-col gap-6">
-            {/* Section Title */}
+            {/* PROJECTS HEADER */}
             <div className="flex items-center justify-between px-2">
               <h2 className="text-xl font-bold text-gray-900">
                 Projects Overview
               </h2>
               <button className="text-sm font-medium text-gray-500 hover:text-black transition-colors flex items-center gap-1">
-                <Link href="/projects" className="">
-                  All Projects
-                </Link>
+                <Link href="/projects">All Projects</Link>
                 <ArrowUpRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Projects Grid with Real Members from Batch Data */}
+            {/* PROJECTS GRID (Max 2) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {visibleProjects.length > 0 ? (
                 visibleProjects.map((project: any) => (
@@ -379,49 +396,23 @@ export default async function Dashboard() {
               )}
             </div>
 
-            {/* Analytics Overview Section */}
+            {/* ANALYTICS SECTION (Interactive) */}
             <div>
               <div className="flex items-center justify-between px-2 mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
                   Analytics Overview
                 </h2>
-                <div className="flex gap-2">
-                  <button className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-gray-400 hover:text-black hover:shadow-sm transition-all">
-                    <Plus className="w-5 h-5" />
-                  </button>
-                  <button className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-gray-400 hover:text-black hover:shadow-sm transition-all">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className={`${cardClass} min-h-[300px]`}>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
-                    <BarChart3 className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">
-                      Total Views
-                    </p>
-                    <h3 className="text-2xl font-black">0</h3>
-                  </div>
-                </div>
-
-                {/* Graph Placeholder */}
-                <div className="w-full h-48 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center text-gray-400 gap-2">
-                  <BarChart3 className="w-5 h-5 opacity-50" />
-                  <span className="text-sm font-medium">
-                    Data visualization requires active projects
-                  </span>
-                </div>
               </div>
             </div>
+            <DashboardAnalytics
+              projects={allAccessibleProjects}
+              data={analyticsData}
+            />
           </div>
 
-          {/* RIGHT COLUMN (Widgets) - Spans 4 cols on large screens */}
+          {/* RIGHT COLUMN */}
           <div className="xl:col-span-4 flex flex-col gap-6">
-            {/* Assigned Team Widget */}
+            {/* TEAM WIDGET (Max 3) */}
             <div className={`${cardClass} flex flex-col`}>
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -439,7 +430,6 @@ export default async function Dashboard() {
                 </Link>
               </div>
 
-              {/* Team Member Avatars */}
               <div className="flex items-center -space-x-3 mb-6">
                 {visibleTeamMembers.map((member: any) => (
                   <div
@@ -471,10 +461,9 @@ export default async function Dashboard() {
                 )}
               </div>
 
-              {/* Team Members List (Optional - shows first 3) */}
               {teamMembers.length > 0 && (
                 <div className="space-y-3 mb-6">
-                  {teamMembers.slice(0, 3).map((member: any) => (
+                  {visibleTeamMembers.map((member: any) => (
                     <div
                       key={member.id}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
@@ -500,7 +489,6 @@ export default async function Dashboard() {
                   ))}
                 </div>
               )}
-
               <div className="mt-auto pt-4 border-t border-gray-50">
                 <Link
                   href={`/org/${org.id}/team`}
@@ -511,7 +499,7 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Actions Widget */}
+            {/* QUICK ACTIONS */}
             <div className={`${cardClass}`}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-900">Quick Actions</h3>
@@ -519,7 +507,6 @@ export default async function Dashboard() {
                   + Add
                 </button>
               </div>
-
               <div className="space-y-2">
                 {[
                   "Check API Status",

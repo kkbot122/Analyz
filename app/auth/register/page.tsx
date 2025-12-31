@@ -263,8 +263,6 @@ function RegisterContent() {
   );
 }
 
-// 2. ✅ Create the Default Export Wrapper
-// This wraps the content in Suspense to satisfy Next.js requirements
 export default function RegisterPage() {
   return (
     <Suspense
