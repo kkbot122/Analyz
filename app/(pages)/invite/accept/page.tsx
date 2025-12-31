@@ -91,38 +91,57 @@ export default async function AcceptInvitePage({ searchParams }: PageProps) {
     }
 
     // Auto-accept the invite
+    let success = false;
     try {
-      // Add to organization
-      await prisma.membership.create({
-        data: {
+      // Add to organization (using upsert to avoid unique constraint errors if running twice)
+      await prisma.membership.upsert({
+        where: {
+            userId_organizationId: {
+                userId: session.user.id,
+                organizationId: invite.organizationId
+            }
+        },
+        create: {
           userId: session.user.id,
           organizationId: invite.organizationId,
           role: invite.role,
         },
+        update: {} // Do nothing if exists
       });
 
       // Add to project if specified
       if (invite.projectId) {
-        // Use MEMBER as default project role for invites
-        await prisma.projectMember.create({
-          data: {
-            userId: session.user.id,
-            projectId: invite.projectId,
-            role: "MEMBER",
-          },
-        });
+         // Check if already in project to avoid error
+         const existingMember = await prisma.projectMember.findUnique({
+             where: {
+                 userId_projectId: {
+                     userId: session.user.id,
+                     projectId: invite.projectId
+                 }
+             }
+         });
+         
+         if (!existingMember) {
+            await prisma.projectMember.create({
+              data: {
+                userId: session.user.id,
+                projectId: invite.projectId,
+                role: "MEMBER",
+              },
+            });
+         }
       }
 
-      // Delete or mark invite as accepted
+      // Delete the invite
       await prisma.invite.delete({
         where: { id: invite.id },
       });
+      
+      success = true; // ✅ Mark success, don't redirect yet
 
-      // Redirect to dashboard
-      redirect("/dashboard");
     } catch (error) {
       console.error("Error accepting invite:", error);
-      // Handle already a member case
+      // Return the error UI
       return (
         <div className="min-h-screen bg-[#f0eeef] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-sm border border-gray-100">
@@ -133,7 +152,7 @@ export default async function AcceptInvitePage({ searchParams }: PageProps) {
               Already a Member
             </h1>
             <p className="text-gray-600 mb-6">
-              You're already a member of <strong>{invite.organization.name}</strong>.
+              You're likely already a member of <strong>{invite.organization.name}</strong>.
             </p>
             <Link
               href="/dashboard"
@@ -144,6 +163,11 @@ export default async function AcceptInvitePage({ searchParams }: PageProps) {
           </div>
         </div>
       );
+    }
+
+    // ✅ Redirect OUTSIDE the try/catch block
+    if (success) {
+        redirect("/dashboard");
     }
   }
 

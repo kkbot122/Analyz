@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation"; // ✅ Added useSearchParams
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { signIn } from "next-auth/react"; // Import signIn
-import { FcGoogle } from "react-icons/fc"; // Import Google Icon
-import { FaGithub } from "react-icons/fa"; // Import GitHub Icon
+import { signIn } from "next-auth/react";
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams(); // ✅ Get URL params
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"; // ✅ Default to dashboard
   
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(searchParams.get("email") || ""); // ✅ Pre-fill email if present
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +24,6 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
-    // Validation
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -37,21 +38,36 @@ export default function RegisterPage() {
     setError("");
 
     try {
+      // 1. Create User
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        router.push("/dashboard");
-      } else {
+      if (!res.ok) {
         setError(data.error || "Registration failed");
+        setLoading(false);
+        return;
       }
+
+      // 2. ✅ Auto-Login immediately
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setError("Account created, but failed to sign in automatically.");
+      } else {
+        // 3. ✅ Redirect to Callback URL (Invite Accept Page or Dashboard)
+        router.push(callbackUrl);
+        router.refresh();
+      }
+
     } catch (error) {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -59,30 +75,25 @@ export default function RegisterPage() {
     }
   }
 
-  // Handler for Social Sign Up
   const handleSocialSignUp = (provider: "google" | "github") => {
-    signIn(provider, { callbackUrl: "/dashboard" });
+    signIn(provider, { callbackUrl }); // ✅ Pass callbackUrl here too
   };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      
       {/* Left Side: Visuals & Branding */}
       <div className="relative hidden lg:flex flex-col justify-between p-12 bg-[#d9633c] text-white overflow-hidden">
-        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-[-20%] left-[-20%] w-[100vw] h-[100vw] rounded-full border-[100px] border-white/50" />
           <div className="absolute top-[-10%] left-[-15%] w-[90vw] h-[90vw] rounded-full border-[80px] border-white/40" />
         </div>
 
-        {/* Logo */}
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-black tracking-tight">Analyz</span>
           </Link>
         </div>
 
-        {/* Hero Text */}
         <div className="relative z-10 max-w-lg">
           <h1 className="text-4xl font-regular tracking-tight mb-4 leading-tight">
             Go ahead, start your "journey".
@@ -104,10 +115,9 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Social Buttons */}
           <div className="grid grid-cols-2 gap-4 mb-8">
             <button 
-              type="button" // Important: prevents form submission
+              type="button" 
               onClick={() => handleSocialSignUp("google")}
               className="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
             >
@@ -116,7 +126,7 @@ export default function RegisterPage() {
             </button>
             
             <button 
-              type="button" // Important: prevents form submission
+              type="button" 
               onClick={() => handleSocialSignUp("github")}
               className="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
             >
@@ -125,7 +135,6 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          {/* Divider */}
           <div className="relative mb-8">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200"></span>
@@ -143,9 +152,7 @@ export default function RegisterPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Full Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
               <input 
                 type="text" 
                 value={name}
@@ -157,9 +164,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email Address
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
               <input 
                 type="email" 
                 value={email}
@@ -171,9 +176,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
@@ -194,9 +197,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Confirm Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
@@ -217,9 +218,7 @@ export default function RegisterPage() {
             </div>
 
             <p className="text-xs text-gray-500 mt-2">
-              By creating an account, you agree to our{" "}
-              <a href="#" className="text-blue-600 hover:underline">Terms of service</a> and{" "}
-              <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+              By creating an account, you agree to our <a href="#" className="text-blue-600 hover:underline">Terms of service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
             </p>
 
             <button 
@@ -232,10 +231,7 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-8 text-center text-sm text-gray-500">
-            Already have an account?{" "}
-            <Link href="/auth/login" className="text-blue-600 font-medium hover:underline">
-              Sign in
-            </Link>
+            Already have an account? <Link href="/auth/login" className="text-blue-600 font-medium hover:underline">Sign in</Link>
           </div>
         </div>
       </div>

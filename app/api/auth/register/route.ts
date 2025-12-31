@@ -9,8 +9,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
+  // ✅ Normalize email
+  const normalizedEmail = email.toLowerCase();
+
   const existing = await prisma.user.findUnique({
-    where: { email },
+    where: { email: normalizedEmail },
   });
 
   if (existing) {
@@ -21,7 +24,7 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.create({
     data: {
-      email,
+      email: normalizedEmail,
       name,
       password: hashedPassword,
     },

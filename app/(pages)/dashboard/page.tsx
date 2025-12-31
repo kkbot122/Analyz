@@ -17,6 +17,8 @@ import {
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+// ✅ 1. Import Prisma Enums for Type Casting
+import { OrgRole, ProjectRole } from "@prisma/client";
 
 // Direct database fetch functions
 async function getTeamMembers(orgId: string) {
@@ -214,7 +216,64 @@ function ProjectCard({
 }
 
 export default async function Dashboard() {
-  const org = await getActiveOrg();
+  let org = await getActiveOrg();
+  const session = await getServerSession(authOptions);
+
+  // ✅ 2. FIXED FALLBACK LOGIC
+  // Explicitly checking for existence of organizations array
+  if (
+    !org &&
+    session?.user?.organizations &&
+    session.user.organizations.length > 0
+  ) {
+    const firstOrg = session.user.organizations[0];
+
+    // Construct a minimal org object compatible with your view
+    // ✅ 3. CAST TYPES using 'as OrgRole' and 'as ProjectRole'
+    org = {
+      id: firstOrg.id,
+      name: firstOrg.name,
+      role: firstOrg.role as OrgRole,
+      projects: firstOrg.projects.map((p) => ({
+        id: p.id,
+        name: p.name,
+        role: p.role as ProjectRole,
+      })),
+    };
+  }
+
+  if (!org && session?.user?.id) {
+    const dbMembership = await prisma.membership.findFirst({
+      where: { userId: session.user.id },
+      include: {
+        organization: {
+          include: {
+            projects: {
+              include: {
+                // Include members so we can find OUR role in the project
+                members: { where: { userId: session.user.id } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (dbMembership) {
+      org = {
+        id: dbMembership.organization.id,
+        name: dbMembership.organization.name,
+        role: dbMembership.role,
+        projects: dbMembership.organization.projects.map((p) => ({
+          id: p.id,
+          name: p.name,
+          // If we have a membership record for this project, use it. Otherwise default to MEMBER.
+          role: (p.members[0]?.role || "MEMBER") as ProjectRole,
+        })),
+      };
+    }
+  }
+
   if (!org) redirect("/onboarding/create-org");
 
   // Fetch ALL data in parallel
